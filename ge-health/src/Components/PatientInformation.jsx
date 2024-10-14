@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './PatientInformation.module.css';
 import FormField from './FormField';
 
@@ -10,6 +10,17 @@ const PatientInformation = () => {
     fetalCount: '2', // default value for fetal count
   });
 
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  useEffect(() => {
+    const isNameValid = patientData.name.trim() !== '';
+    const isAgeValid = patientData.age > 0;
+    const isDOBValid = patientData.dob !== '';
+    
+    // Set form validity based on checks
+    setIsFormValid(isNameValid && isAgeValid && isDOBValid);
+  }, [patientData]);
+
   // Handle input change for form fields
   const handleChange = (e) => {
     const { id, value } = e.target;
@@ -19,10 +30,29 @@ const PatientInformation = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  // TODO api implement
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add form submission logic here (e.g., sending data to backend or validation)
-    console.log('Submitted Patient Data:', patientData);
+    
+    // API call to store the patient info
+    try {
+      const response = await fetch('https://your-api-url.com/patients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData),
+      });
+      
+      if (response.ok) {
+        // If the data is stored successfully, navigate to the new page
+        //navigate('/success');
+      } else {
+        console.error('Error storing patient information');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+    }
   };
 
   return (
@@ -83,7 +113,7 @@ const PatientInformation = () => {
 
           
           {/* Submit Button */}
-          <button type="submit" className={styles.submitButton}>
+          <button type="submit" className={styles.submitButton} disabled={!isFormValid}>
             Submit
           </button>
         </form>
