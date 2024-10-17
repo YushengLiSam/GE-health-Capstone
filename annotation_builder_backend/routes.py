@@ -1,103 +1,78 @@
-from flask import request, jsonify
-from app import app, mysql
-from models import Category, Subcategory, Datapoint
+from flask import Blueprint, jsonify, request
+import mysql.connector
 
-# API to get all categories
-@app.route('/get_categories', methods=['GET'])
+# Connect to the database
+db = mysql.connector.connect(
+    host="localhost",
+    user="annotation_user",
+    password="",
+    database="annotations"
+)
+
+# Create Blueprint for routes
+category_routes = Blueprint('category_routes', __name__)
+subcategory_routes = Blueprint('subcategory_routes', __name__)
+datapoint_routes = Blueprint('datapoint_routes', __name__)
+
+# -------------------------
+# Category Routes
+# -------------------------
+@category_routes.route('/', methods=['GET'])
 def get_categories():
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM Categories")
-    categories = cur.fetchall()
-    cur.close()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM Categories")
+    categories = cursor.fetchall()
+    return jsonify(categories)
 
-    categories_list = [{"id": row[0], "name": row[1]} for row in categories]
-    return jsonify(categories_list)
-
-# API to add a new category
-@app.route('/add_category', methods=['POST'])
+@category_routes.route('/', methods=['POST'])
 def add_category():
-    data = request.get_json()
-    name = data['name']
+    data = request.json
+    category_name = data['name']
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Categories (name) VALUES (%s)", (category_name,))
+    db.commit()
+    return jsonify({"message": "Category added successfully!"}), 201
 
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO Categories (name) VALUES (%s)", [name])
-    mysql.connection.commit()
-    cur.close()
-    
-    return jsonify({'message': 'Category added successfully'})
-
-# API to get subcategories for a category
-@app.route('/get_subcategories/<int:category_id>', methods=['GET'])
+# -------------------------
+# Subcategory Routes
+# -------------------------
+@subcategory_routes.route('/<int:category_id>', methods=['GET'])
 def get_subcategories(category_id):
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM Subcategories WHERE category_id = %s", [category_id])
-    subcategories = cur.fetchall()
-    cur.close()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
+    subcategories = cursor.fetchall()
+    return jsonify(subcategories)
 
-    subcategories_list = [{"id": row[0], "category_id": row[1], "name": row[2]} for row in subcategories]
-    return jsonify(subcategories_list)
+@subcategory_routes.route('/<int:category_id>', methods=['POST'])
+def add_subcategory(category_id):
+    data = request.json
+    subcategory_name = data['name']
+    cursor = db.cursor()
+    cursor.execute("INSERT INTO Subcategories (category_id, name) VALUES (%s, %s)", (category_id, subcategory_name))
+    db.commit()
+    return jsonify({"message": "Subcategory added successfully!"}), 201
 
-# API to add a subcategory to a category
-@app.route('/add_subcategory', methods=['POST'])
-def add_subcategory():
-    data = request.get_json()
-    category_id = data['category_id']
-    name = data['name']
-
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO Subcategories (category_id, name) VALUES (%s, %s)", (category_id, name))
-    mysql.connection.commit()
-    cur.close()
-
-    return jsonify({'message': 'Subcategory added successfully'})
-
-# API to get datapoints for a subcategory
-@app.route('/get_datapoints/<int:subcategory_id>', methods=['GET'])
+# -------------------------
+# Datapoint Routes
+# -------------------------
+@datapoint_routes.route('/<int:subcategory_id>', methods=['GET'])
 def get_datapoints(subcategory_id):
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", [subcategory_id])
-    datapoints = cur.fetchall()
-    cur.close()
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+    datapoints = cursor.fetchall()
+    return jsonify(datapoints)
 
-    datapoints_list = [
-        {
-            "id": row[0],
-            "subcategory_id": row[1],
-            "name": row[2],
-            "datatype": row[3],
-            "is_mandatory": row[4]
-        } for row in datapoints
-    ]
-    return jsonify(datapoints_list)
-
-# API to add a datapoint to a subcategory
-@app.route('/add_datapoint', methods=['POST'])
-def add_datapoint():
-    data = request.get_json()
-    subcategory_id = data['subcategory_id']
+@datapoint_routes.route('/<int:subcategory_id>', methods=['POST'])
+def add_datapoint(subcategory_id):
+    data = request.json
     name = data['name']
-    datatype = data['datatype']
+    data_type = data['data_type']
     is_mandatory = data['is_mandatory']
-
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO Datapoints (subcategory_id, name, datatype, is_mandatory) VALUES (%s, %s, %s, %s)",
-                (subcategory_id, name, datatype, is_mandatory))
-    mysql.connection.commit()
-    cur.close()
-
-    return jsonify({'message': 'Datapoint added successfully'})
-
-# API to add list values to a datapoint (for dropdown)
-@app.route('/add_listvalue', methods=['POST'])
-def add_listvalue():
-    data = request.get_json()
-    datapoint_id = data['datapoint_id']
-    value = data['value']
-
-    cur = mysql.connection.cursor()
-    cur.execute("INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)", (datapoint_id, value))
-    mysql.connection.commit()
-    cur.close()
-
-    return jsonify({'message': 'List value added successfully'})
+    cursor = db.cursor()
+    cursor.execute(
+        "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+        (subcategory_id, name, data_type, is_mandatory)
+    )
+    db.commit()
+    return jsonify({"message": "Datapoint added successfully!"}), 201
 

@@ -1,16 +1,19 @@
-from flask import Flask
-from flask_mysqldb import MySQL
-from config import Config
+from flask import Flask, jsonify, request
+import mysql.connector
 
 app = Flask(__name__)
-app.config.from_object(Config)
 
-mysql = MySQL(app)
+# MySQL connection configuration
+db = mysql.connector.connect(
+    host="localhost",
+    user="annotation_user",
+    password="",  # no password
+    database="annotations"
+)
 
-# A test route to ensure everything is working
 @app.route('/')
-def index():
-    return "Hello, Annotation Builder!"
+def home():
+    return "Backend is connected to MySQL!"
 
 if __name__ == '__main__':
     app.run(debug=True)

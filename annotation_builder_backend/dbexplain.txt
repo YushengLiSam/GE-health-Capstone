@@ -1,0 +1,31 @@
+1. Annotation Builder Overview:
+The Annotation Builder is a tool to configure categories, subcategories, and datapoints. These elements are hierarchical:
+•	Categories (e.g., FHR Contractions)
+•	Subcategories (e.g., Fetal Heart Rate, Uterine Activity)
+•	Datapoints (e.g., FHR Baseline, Contractions Intensity)
+•	ListValues (Mild, moderate, Strong)
+Key properties:
+•	Categories are top-level items and can be rearranged.
+•	Subcategories are linked to categories.
+•	Datapoints are linked to subcategories and can have different data types (e.g., numeric, list, boolean).
+
+Pre-delivery (Category)
+│
+├── Contractions (Subcategory)
+│   ├── Contraction frequency (Datapoint: Numeric)
+│   └── Quality (Datapoint: Dropdown: Mild, Moderate, Strong)
+│
+└── Patient Care (Subcategory)
+    └── Name (Datapoint: Textbox)
+
+In Delivery (Category)
+└── (No subcategories or datapoints added yet)
+
+/annotation_builder_backend/
+│
+├── app.py              # Main entry point for the Flask app
+├── routes.py           # API routes for Categories, Subcategories, Datapoints
+├── config.py           # Configuration for MySQL connection
+├── models.py           # (Optional) Database models if using ORM
+└── requirements.txt    # (Optional) Dependencies for the app (Flask, MySQL, etc.)
+

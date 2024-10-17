@@ -25,18 +25,10 @@ DROP TABLE IF EXISTS `Categories`;
 CREATE TABLE `Categories` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `Categories`
---
-
-LOCK TABLES `Categories` WRITE;
-/*!40000 ALTER TABLE `Categories` DISABLE KEYS */;
-/*!40000 ALTER TABLE `Categories` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `Datapoints`
@@ -49,22 +41,14 @@ CREATE TABLE `Datapoints` (
   `id` int NOT NULL AUTO_INCREMENT,
   `subcategory_id` int DEFAULT NULL,
   `name` varchar(255) NOT NULL,
-  `datatype` enum('NUMERIC','TEXTBOX','DROPDOWN') DEFAULT NULL,
-  `is_mandatory` tinyint(1) DEFAULT NULL,
+  `data_type` enum('numeric','text','list','boolean','number_spinner') NOT NULL,
+  `is_mandatory` tinyint(1) DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `subcategory_id` (`subcategory_id`),
-  CONSTRAINT `datapoints_ibfk_1` FOREIGN KEY (`subcategory_id`) REFERENCES `Subcategories` (`id`)
+  CONSTRAINT `datapoints_ibfk_1` FOREIGN KEY (`subcategory_id`) REFERENCES `Subcategories` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `Datapoints`
---
-
-LOCK TABLES `Datapoints` WRITE;
-/*!40000 ALTER TABLE `Datapoints` DISABLE KEYS */;
-/*!40000 ALTER TABLE `Datapoints` ENABLE KEYS */;
-UNLOCK TABLES;
 
 --
 -- Table structure for table `ListValues`
@@ -79,18 +63,28 @@ CREATE TABLE `ListValues` (
   `value` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `datapoint_id` (`datapoint_id`),
-  CONSTRAINT `listvalues_ibfk_1` FOREIGN KEY (`datapoint_id`) REFERENCES `Datapoints` (`id`)
+  CONSTRAINT `listvalues_ibfk_1` FOREIGN KEY (`datapoint_id`) REFERENCES `Datapoints` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `ListValues`
+-- Table structure for table `Rules`
 --
 
-LOCK TABLES `ListValues` WRITE;
-/*!40000 ALTER TABLE `ListValues` DISABLE KEYS */;
-/*!40000 ALTER TABLE `ListValues` ENABLE KEYS */;
-UNLOCK TABLES;
+DROP TABLE IF EXISTS `Rules`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `Rules` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `rule_name` varchar(255) NOT NULL,
+  `condition_name` varchar(255) NOT NULL,
+  `operator` enum('>=','<=','>','<','=','string_equals','contains','not_equals','does_not_contain') DEFAULT NULL,
+  `value` varchar(255) NOT NULL,
+  `action` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `Subcategories`
@@ -103,20 +97,12 @@ CREATE TABLE `Subcategories` (
   `id` int NOT NULL AUTO_INCREMENT,
   `category_id` int DEFAULT NULL,
   `name` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `category_id` (`category_id`),
-  CONSTRAINT `subcategories_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `Categories` (`id`)
+  CONSTRAINT `subcategories_ibfk_1` FOREIGN KEY (`category_id`) REFERENCES `Categories` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `Subcategories`
---
-
-LOCK TABLES `Subcategories` WRITE;
-/*!40000 ALTER TABLE `Subcategories` DISABLE KEYS */;
-/*!40000 ALTER TABLE `Subcategories` ENABLE KEYS */;
-UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -127,4 +113,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-17 14:23:42
+-- Dump completed on 2024-10-17 15:07:17
