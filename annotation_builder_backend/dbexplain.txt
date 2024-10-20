@@ -24,7 +24,7 @@ In Delivery (Category)
 /annotation_builder_backend/
 │
 ├── app.py              # Main entry point for the Flask app
-├── routes.py           # API routes for Categories, Subcategories, Datapoints
+├── routes.py           # API routes for Categories, Subcategories, Datapoints, and Operators
 ├── config.py           # Configuration for MySQL connection
 ├── models.py           # (Optional) Database models if using ORM
 └── requirements.txt    # (Optional) Dependencies for the app (Flask, MySQL, etc.)

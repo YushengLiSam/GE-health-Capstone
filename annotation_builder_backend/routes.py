@@ -9,10 +9,19 @@ db = mysql.connector.connect(
     database="annotations"
 )
 
+# Connect to static database
+db2 = mysql.connector.connect(
+    host="localhost",
+    user="annotation_user",
+    password="",
+    database="static_annotation"
+)
+
 # Create Blueprint for routes
 category_routes = Blueprint('category_routes', __name__)
 subcategory_routes = Blueprint('subcategory_routes', __name__)
 datapoint_routes = Blueprint('datapoint_routes', __name__)
+operand_routes = Blueprint('operand_routes', __name__)
 
 # -------------------------
 # Category Routes
@@ -75,4 +84,14 @@ def add_datapoint(subcategory_id):
     )
     db.commit()
     return jsonify({"message": "Datapoint added successfully!"}), 201
+
+# -------------------------
+# Operand Routes
+# -------------------------
+@operand_routes.route('/', methods=['GET'])
+def get_operands():
+    cursor = db2.cursor()
+    cursor.execute("SELECT * FROM Symbols")
+    operands = cursor.fetchall()
+    return jsonify(operands)
 

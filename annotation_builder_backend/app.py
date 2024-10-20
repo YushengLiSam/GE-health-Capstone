@@ -11,6 +11,14 @@ db = mysql.connector.connect(
     database="annotations"
 )
 
+# MySQL connection static configuration
+db2 = mysql.connector.connect(
+    host="localhost",
+    user="annotation_user",
+    password="",  # no password
+    database="static_annotation"
+)
+
 @app.route('/')
 def home():
     return "Backend is connected to MySQL!"
