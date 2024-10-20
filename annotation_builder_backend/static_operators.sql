@@ -26,7 +26,7 @@ CREATE TABLE `Symbols` (
   `id` int NOT NULL AUTO_INCREMENT,
   `symbol` varchar(255) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -35,7 +35,7 @@ CREATE TABLE `Symbols` (
 
 LOCK TABLES `Symbols` WRITE;
 /*!40000 ALTER TABLE `Symbols` DISABLE KEYS */;
-INSERT INTO `Symbols` VALUES (1,'<='),(2,'<'),(3,'>='),(4,'>'),(5,'='),(6,'!='),(7,'string_equals'),(8,'string_not_equals'),(9,'contains'),(10,'does_not_contains');
+INSERT INTO `Symbols` VALUES (1,'<='),(2,'<'),(3,'>='),(4,'>'),(5,'='),(6,'!='),(7,'string_equals'),(8,'string_not_equals'),(9,'contains'),(10,'does_not_contains'),(11,'==');
 /*!40000 ALTER TABLE `Symbols` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -48,4 +48,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-10-20 12:51:08
+-- Dump completed on 2024-10-20 14:31:33
