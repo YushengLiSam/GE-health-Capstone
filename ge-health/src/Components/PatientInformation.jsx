@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './PatientInformation.module.css';
-import FormField from './FormField';
+import { useNavigate } from 'react-router-dom';
+
 
 const PatientInformation = () => {
   const [patientData, setPatientData] = useState({
@@ -11,6 +12,7 @@ const PatientInformation = () => {
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const isNameValid = patientData.name.trim() !== '';
@@ -33,26 +35,26 @@ const PatientInformation = () => {
   // TODO api implement
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // API call to store the patient info
-    try {
-      const response = await fetch('https://your-api-url.com/patients', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(patientData),
-      });
+    navigate('/gallery');
+    // // API call to store the patient info
+    // try {
+    //   const response = await fetch('https://your-api-url.com/patients', {
+    //     method: 'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify(patientData),
+    //   });
       
-      if (response.ok) {
-        // If the data is stored successfully, navigate to the new page
-        //navigate('/success');
-      } else {
-        console.error('Error storing patient information');
-      }
-    } catch (error) {
-      console.error('API error:', error);
-    }
+    //   if (response.ok) {
+    //     // If the data is stored successfully, navigate to the new page
+    //     navigate('/gallery');
+    //   } else {
+    //     console.error('Error storing patient information');
+    //   }
+    // } catch (error) {
+    //   console.error('API error:', error);
+    // }
   };
 
   return (
