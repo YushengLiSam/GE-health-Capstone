@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 import mysql.connector
+from routes import category_routes, subcategory_routes, datapoint_routes, operand_routes 
 
 app = Flask(__name__)
 
@@ -18,6 +19,12 @@ db2 = mysql.connector.connect(
     password="",  # no password
     database="static_annotation"
 )
+
+# Register blueprint for our routes
+app.register_blueprint(category_routes)
+app.register_blueprint(subcategory_routes)
+app.register_blueprint(datapoint_routes)
+app.register_blueprint(operand_routes)
 
 @app.route('/')
 def home():
