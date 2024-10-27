@@ -9,7 +9,7 @@ subcategory_routes = Blueprint('subcategory_routes', __name__)
 datapoint_routes = Blueprint('datapoint_routes', __name__)
 operand_routes = Blueprint('operand_routes', __name__)
 
-# MySQL connection configuration
+# MySQL connection configuration for main and static databases
 db = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
