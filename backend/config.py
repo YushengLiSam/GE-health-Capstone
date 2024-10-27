@@ -6,4 +6,3 @@ class Config:
     MYSQL_PASSWORD = ''
     MYSQL_DB = 'annotations'
     MYSQL_DB2 = 'static_annotation'
-
