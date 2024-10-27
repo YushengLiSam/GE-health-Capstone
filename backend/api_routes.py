@@ -1,12 +1,7 @@
-from flask import Flask, Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request
 import mysql.connector
-import unittest
-from routes import category_routes, subcategory_routes, datapoint_routes, operand_routes
 
-# Create Flask app and Blueprints
-app = Flask(__name__)
-
-# MySQL connection configuration
+# Connect to the database
 db = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
@@ -14,13 +9,19 @@ db = mysql.connector.connect(
     database="annotations"
 )
 
-# MySQL static database connection configuration
+# Connect to static database
 db2 = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
     password="",
     database="static_annotation"
 )
+
+# Create Blueprints for routes
+category_routes = Blueprint('category_routes', __name__)
+subcategory_routes = Blueprint('subcategory_routes', __name__)
+datapoint_routes = Blueprint('datapoint_routes', __name__)
+operand_routes = Blueprint('operand_routes', __name__)
 
 # -------------------------
 # Category Routes
@@ -115,10 +116,8 @@ def add_datapoint(subcategory_id):
 
     try:
         cursor = db.cursor()
-        cursor.execute(
-            "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
-            (subcategory_id, name, data_type, is_mandatory)
-        )
+        cursor.execute("INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+                       (subcategory_id, name, data_type, is_mandatory))
         db.commit()
     except mysql.connector.Error as err:
         return jsonify({"error": f"Database error: {str(err)}"}), 500
@@ -137,70 +136,3 @@ def get_operands():
     operands = cursor.fetchall()
     operand_list = [operand['symbol'] for operand in operands]
     return jsonify(operand_list), 200
-
-
-# Register Blueprints
-app.register_blueprint(category_routes, url_prefix='/categories')
-app.register_blueprint(subcategory_routes, url_prefix='/subcategories')
-app.register_blueprint(datapoint_routes, url_prefix='/datapoints')
-app.register_blueprint(operand_routes, url_prefix='/operands')
-
-
-@app.route('/')
-def home():
-    return "Backend is connected to MySQL!"
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
-# -------------------------
-# Unit Tests for APIs
-# -------------------------
-
-
-class TestAnnotationAPIs(unittest.TestCase):
-
-    def setUp(self):
-        self.app = app.test_client()
-        self.app.testing = True
-
-    # Test Categories
-    def test_get_categories(self):
-        response = self.app.get('/categories/')
-        self.assertEqual(response.status_code, 200)
-        self.assertIsInstance(response.json, list)
-
-    def test_add_category(self):
-        response = self.app.post('/categories/', json={'name': 'New Category'})
-        self.assertEqual(response.status_code, 201)
-        self.assertIn('message', response.json)
-
-    def test_invalid_add_category(self):
-        response = self.app.post('/categories/', json={})
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('error', response.json)
-
-    # Test Subcategories
-    def test_get_subcategories(self):
-        response = self.app.get('/subcategories/1')
-        self.assertIn(response.status_code, [200, 404])
-
-    def test_add_subcategory(self):
-        response = self.app.post(
-            '/subcategories/1', json={'name': 'New Subcategory'})
-        self.assertIn(response.status_code, [201, 500])
-
-    # Test Datapoints
-    def test_get_datapoints(self):
-        response = self.app.get('/datapoints/1')
-        self.assertIn(response.status_code, [200, 404])
-
-    def test_add_datapoint(self):
-        response = self.app.post(
-            '/datapoints/1', json={'name': 'New Datapoint', 'data_type': 'text', 'is_mandatory': True})
-        self.assertIn(response.status_code, [201, 500])
-
-
-if __name__ == '__main__':
-    unittest.main()
