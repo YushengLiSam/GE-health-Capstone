@@ -12,7 +12,7 @@ db = mysql.connector.connect(
     database="annotations"
 )
 
-# MySQL connection static configuration
+# MySQL static database connection configuration
 db2 = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
@@ -32,4 +32,3 @@ def home():
 
 if __name__ == '__main__':
     app.run(debug=True)
-
