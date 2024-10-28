@@ -101,6 +101,44 @@ def delete_category(category_id):
 # GET /categories
 # -------------------------
 
+# get specific category
+@api_routes.route('/categories/<int:category_id>', methods=['GET'])
+def get_category(category_id):
+    try:
+        cursor = db1.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Categories WHERE id = %s", (category_id,))
+        category = cursor.fetchone()
+
+        if category is None:
+            return jsonify({"error": "Category not found"}), 404
+        
+        cursor.execute("SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
+        subcategories = cursor.fetchall()
+
+        category['subcategories'] = []
+
+        for subcategory in subcategories:
+            subcategory_id = subcategory['id']
+            # Query to get datapoints related to the subcategory
+            cursor.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+            datapoints = cursor.fetchall()
+
+            subcategory['datapoints'] = []
+            for datapoint in datapoints:
+                datapoint_id = datapoint['id']
+                if datapoint['data_type'].lower() == 'list':
+                    # Query to get list items if the datapoint is of type list
+                    cursor.execute("SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
+                    list_items = cursor.fetchall()
+                    datapoint['listItems'] = [item['value'] for item in list_items]
+                
+                subcategory['datapoints'].append(datapoint)
+
+            category['subcategories'].append(subcategory)
+
+        return jsonify(category), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @api_routes.route('/categories', methods=['GET'])
 def get_categories_with_details():
