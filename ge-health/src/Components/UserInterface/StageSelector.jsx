@@ -6,9 +6,9 @@ function StageSelector({ onStageSelect }) {
   const [selectedStage, setSelectedStage] = useState('Select Stage');
 
   const stages = [
-    'Early/Latent Labor (Closed-4cm)',
-    'Active Labor (5cm-8cm)',
-    'Transition (8cm-10cm)',
+    'Early/Latent Labor',
+    'Active Labor',
+    'Transition',
     'Pushing/Delivery',
     'Expulsion of Placenta',
     'Pre-Admission',
