@@ -124,40 +124,40 @@ def get_category():
             return jsonify(category), 200
 
         else:
-            # If no category name is provided, return all categories
             cursor.execute("SELECT * FROM Categories")
             categories = cursor.fetchall()
-
-            # For each category, fetch related subcategories and datapoints
             for category in categories:
                 category_id = category['id']
                 cursor.execute(
-                    "SELECT * FROM Subcategories WHERE category_id = %s", 
-                    (category_id,)
-                )
+                    "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
                 subcategories = cursor.fetchall()
+                category['subcategories'] = [] # new
 
                 for subcategory in subcategories:
                     subcategory_id = subcategory['id']
                     cursor.execute(
-                        "SELECT * FROM Datapoints WHERE subcategory_id = %s", 
-                        (subcategory_id,)
-                    )
+                        "SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
                     datapoints = cursor.fetchall()
-                    subcategory['datapoints'] = datapoints
+                    subcategory['datapoints'] = []
 
-                    # If data type is List, fetch list items
                     for datapoint in datapoints:
+                        datapoint_dict = {
+                            'name': datapoint['name'],
+                            'datatype': datapoint['data_type'],
+                            'isMandatory': datapoint['is_mandatory']
+                        }
                         datapoint_id = datapoint['id']
                         if datapoint['data_type'].lower() == 'list':
                             cursor.execute(
-                                "SELECT * FROM ListValues WHERE datapoint_id = %s", 
-                                (datapoint_id,)
-                            )
+                                "SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
                             list_items = cursor.fetchall()
-                            datapoint['listItems'] = [item['value'] for item in list_items]
-
-                category['subcategories'] = subcategories
+                            datapoint['listItems'] = [item['value']
+                                                  for item in list_items]
+                        subcategory['datapoints'].append(datapoint_dict)
+                category['subcategories'].append({
+                        'name': subcategory['name'],  # Include the subcategory name
+                        'datapoints': subcategory['datapoints']
+                    })
 
             return jsonify({"categories": categories}), 200
 
@@ -215,16 +215,21 @@ def get_categories_with_details():
             cursor.execute(
                 "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
             subcategories = cursor.fetchall()
-            category['subcategories'] = subcategories
+            category['subcategories'] = [] # new
 
             for subcategory in subcategories:
                 subcategory_id = subcategory['id']
                 cursor.execute(
                     "SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
                 datapoints = cursor.fetchall()
-                subcategory['datapoints'] = datapoints
+                subcategory['datapoints'] = []
 
                 for datapoint in datapoints:
+                    datapoint_dict = {
+                        'name': datapoint['name'],
+                        'datatype': datapoint['data_type'],
+                        'isMandatory': datapoint['is_mandatory']
+                    }
                     datapoint_id = datapoint['id']
                     if datapoint['data_type'].lower() == 'list':
                         cursor.execute(
@@ -232,6 +237,11 @@ def get_categories_with_details():
                         list_items = cursor.fetchall()
                         datapoint['listItems'] = [item['value']
                                                   for item in list_items]
+                    subcategory['datapoints'].append(datapoint_dict)
+            category['subcategories'].append({
+                    'name': subcategory['name'],  # Include the subcategory name
+                    'datapoints': subcategory['datapoints']
+                })
 
         return jsonify({"categories": categories}), 200
     except Exception as e:
