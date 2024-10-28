@@ -39,26 +39,38 @@
 
 .category {
   background-color: #E7E5F0;
-  margin-bottom: 20px;
 }
 
 .subcategory {
   background-color: #D6D2E4;
   margin-left: 20px;
-  margin-bottom: 15px;
 }
 
 .datapoint {
   background-color: #C5BFD9;
   margin-left: 40px;
-  margin-bottom: 10px;
 }
 
-input[type="text"], select {
+.custom-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 8px;
+  font-size: 14px; /* Align with dropdown font size */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  resize: none;
+  margin-top: 8px;
+  box-sizing: border-box; /* Ensures padding does not add extra width */
+  font-family: inherit; /* Inherit font from parent to match dropdown */
+  color: #333; /* Ensure text color aligns with dropdown */
+}
+
+input[type="text"], select, .custom-input {
   padding: 8px;
   margin-right: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
+  font-size: 14px;
 }
 
 button {
