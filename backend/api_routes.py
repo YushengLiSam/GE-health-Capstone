@@ -58,7 +58,6 @@ def add_categories():
                     )
                     datapoint_id = cursor.lastrowid
 
-                    print("Inserting datapoint:", datapoint)
                     # If the data type is List, save the list items
                     if data_type == 'list':
                         for item in datapoint['listItems']:
