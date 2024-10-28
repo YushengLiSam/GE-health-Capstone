@@ -1,9 +1,9 @@
 import React from 'react';
 
-function HeaderAndPatientInfo({ patient }) {
+function HeaderAndPatientInfo({ patient,patientName }) {
   return (
     <div className="header">
-      <h2>{patient.name || 'Loading...'}</h2>
+      <h2>{patientName || 'Loading...'}</h2>
       <p>Bed: {patient.bed}</p>
       <p>BP: {patient.bp} mmHg</p>
     </div>

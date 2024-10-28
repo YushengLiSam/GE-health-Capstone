@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import HeaderAndPatientInfo from './HeaderAndPatientInfo';
 import StageSelector from './StageSelector';
 import TabNavigation from './TabNavigation';
@@ -8,6 +9,10 @@ import './style.css';
 function UserInterface() {
   const [patientData, setPatientData] = useState({});
   const [alerts, setAlerts] = useState([]);
+
+  const location = useLocation();
+  const { patientName } = location.state || {};
+  console.log(patientName)
 
   // Fetch patient data and monitor for alerts
   useEffect(() => {
@@ -26,7 +31,7 @@ function UserInterface() {
 
   return (
     <div className="container">
-      <HeaderAndPatientInfo patient={patientData} />
+      <HeaderAndPatientInfo patient={patientData} patientName = {patientName}/>
       <StageSelector />
       <AlertDisplay alerts={alerts} />
       <TabNavigation />
