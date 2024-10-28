@@ -27,6 +27,8 @@ function AnnotationBuilder() {
     ]}
   ];
 
+  const dataTypeOptions = ['Float', 'String', 'List'];
+
   const addCategory = () => {
     setCategories([...categories, { selectedCategory: '', subcategories: [] }]);
   };
@@ -73,6 +75,12 @@ function AnnotationBuilder() {
       type: selectedDatapoint.type,
       listItems: selectedDatapoint.listItems || []
     };
+    setCategories(updatedCategories);
+  };
+
+  const handleDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, event) => {
+    const updatedCategories = [...categories];
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = event.target.value;
     setCategories(updatedCategories);
   };
 
@@ -132,10 +140,16 @@ function AnnotationBuilder() {
                         <option key={index} value={option.name}>{option.name}</option>
                       ))}
                     </select>
-                    <span>Data Type: {datapoint.type}</span>
-                    {datapoint.listItems && datapoint.listItems.length > 0 && (
-                      <div>List Items: {datapoint.listItems.join(', ')}</div>
-                    )}
+                    <select
+                      value={datapoint.type}
+                      onChange={(e) => handleDataTypeChange(categoryIndex, subcategoryIndex, datapointIndex, e)}
+                      className={styles['data-type-dropdown']}
+                    >
+                      <option value="">Select Data Type</option>
+                      {dataTypeOptions.map((type, index) => (
+                        <option key={index} value={type}>{type}</option>
+                      ))}
+                    </select>
                     <button onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}>Remove</button>
                   </div>
                 ))}
