@@ -1,17 +1,16 @@
 import React, { useState } from 'react';
-import './AnnotationBuilder.css';
+import styles from './AnnotationBuilder.module.css'; // Import the CSS module
 
 function AnnotationBuilder() {
   const [categories, setCategories] = useState([]);
 
-  // hardcode options for dropdowns for now
   const categoryOptions = [
     'Pre-Admission', 'Early Labor', 'Active Labor', 'Transition', 'Pushing/Delivery', 'Expulsion of Placenta'
   ];
 
   const subcategoryOptions = [
-    'Patient interventions', 'FHR', 'Contractions', 'Blood work', 'I/O Interventions', 'Medication Administration', 
-    'Pain Management', 'Membrane Status', 'Fetal Position', 'Epidural Placement', 'Vitals', 'Delivery time of infant', 
+    'Patient interventions', 'FHR', 'Contractions', 'Blood work', 'I/O Interventions', 'Medication Administration',
+    'Pain Management', 'Membrane Status', 'Fetal Position', 'Epidural Placement', 'Vitals', 'Delivery time of infant',
     'Time of delivery of Placenta', 'Estimated Blood Loss (EBL)', 'Blood type', 'Reason for Admission'
   ];
 
@@ -78,18 +77,18 @@ function AnnotationBuilder() {
   };
 
   return (
-    <div className="annotation-builder">
-      <div className="header">
+    <div className={styles['annotation-builder']}>
+      <div className={styles.header}>
         <h1>Annotation Builder</h1>
-        <div className="export-import-buttons">
-          <button className="export-button">Export Data</button>
-          <button className="import-button">Import Data</button>
+        <div className={styles['export-import-buttons']}>
+          <button className={styles['export-button']}>Export Data</button>
+          <button className={styles['import-button']}>Import Data</button>
         </div>
       </div>
-      <button onClick={addCategory} className="add-category">Add Category</button>
+      <button onClick={addCategory} className={styles['add-category']}>Add Category</button>
       <div>
         {categories.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="category">
+          <div key={categoryIndex} className={styles.category}>
             <select
               value={category.selectedCategory}
               onChange={(e) => {
@@ -106,7 +105,7 @@ function AnnotationBuilder() {
             <button onClick={() => addSubcategory(categoryIndex)}>Add Subcategory</button>
             <button onClick={() => removeCategory(categoryIndex)}>Remove Category</button>
             {category.subcategories.map((subcategory, subcategoryIndex) => (
-              <div key={subcategoryIndex} className="subcategory">
+              <div key={subcategoryIndex} className={styles.subcategory}>
                 <select
                   value={subcategory.selectedSubcategory}
                   onChange={(e) => {
@@ -123,7 +122,7 @@ function AnnotationBuilder() {
                 <button onClick={() => addDatapoint(categoryIndex, subcategoryIndex)}>Add Datapoint</button>
                 <button onClick={() => removeSubcategory(categoryIndex, subcategoryIndex)}>Remove Subcategory</button>
                 {subcategory.datapoints.map((datapoint, datapointIndex) => (
-                  <div key={datapointIndex} className="datapoint">
+                  <div key={datapointIndex} className={styles.datapoint}>
                     <select
                       value={datapoint.selectedDatapoint}
                       onChange={(e) => handleDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, e)}
@@ -145,8 +144,8 @@ function AnnotationBuilder() {
           </div>
         ))}
       </div>
-      <button className="save">Save</button>
-      <button className="cancel">Cancel</button>
+      <button className={styles.save}>Save</button>
+      <button className={styles.cancel}>Cancel</button>
     </div>
   );
 }

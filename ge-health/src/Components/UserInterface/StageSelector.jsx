@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import Dropdown from 'react-bootstrap/Dropdown';
-import 'bootstrap/dist/css/bootstrap.min.css';
+import './StageSelector.css'; // Custom CSS for styling
 
 function StageSelector({ onStageSelect }) {
+  const [isOpen, setIsOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState('Select Stage');
 
   const stages = [
@@ -15,25 +15,35 @@ function StageSelector({ onStageSelect }) {
     'Customized',
   ];
 
-  const handleSelect = (eventKey) => {
-    setSelectedStage(eventKey);
-    if (onStageSelect) onStageSelect(eventKey);
+  const toggleDropdown = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleSelect = (stage) => {
+    setSelectedStage(stage);
+    setIsOpen(false);
+    if (onStageSelect) onStageSelect(stage);
   };
 
   return (
-    <Dropdown onSelect={handleSelect}>
-      <Dropdown.Toggle variant="primary" id="stage-dropdown">
-        {selectedStage}
-      </Dropdown.Toggle>
-
-      <Dropdown.Menu>
-        {stages.map((stage, index) => (
-          <Dropdown.Item key={index} eventKey={stage} active={selectedStage === stage}>
-            {stage}
-          </Dropdown.Item>
-        ))}
-      </Dropdown.Menu>
-    </Dropdown>
+    <div className="dropdown">
+      <button className="dropdown-toggle" onClick={toggleDropdown}>
+        {selectedStage} <span className="caret">&#9660;</span>
+      </button>
+      {isOpen && (
+        <ul className="dropdown-menu">
+          {stages.map((stage, index) => (
+            <li
+              key={index}
+              className={`dropdown-item ${selectedStage === stage ? 'active' : ''}`}
+              onClick={() => handleSelect(stage)}
+            >
+              {stage}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

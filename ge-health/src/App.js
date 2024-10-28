@@ -30,7 +30,7 @@
 // export default App;
 
 // src/App.js
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import TopBar from './Components/TopBar';
 import Sidebar from './Components/builder/Sidebar';
