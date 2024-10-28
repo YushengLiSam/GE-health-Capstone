@@ -19,6 +19,11 @@ db2 = mysql.connector.connect(
 # Create Blueprint for routes
 api_routes = Blueprint('api_routes', __name__)
 
+# Define routes in the blueprint
+@api_routes.route('/')
+def index():
+    return jsonify({"message": "API is working!"})
+
 # -------------------------
 # POST /categories
 # -------------------------
@@ -64,28 +69,31 @@ def add_categories():
                             )
 
         db1.commit()
-
+        
         return jsonify({"message": "Categories and related data added successfully!"}), 201
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@datapoint_routes.route('/<int:subcategory_id>', methods=['DELETE'])
-def delete_datapoint(subcategory_id, datapoint_id):
+# -----------------------
+# DELETE /categories
+# -----------------------
+
+@api_routes.route('/categories/<int:category_id>', methods=['DELETE'])
+def delete_category(category_id):
     try:
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM Datapoints WHERE id = %s AND subcategory_id = %s",
-                       (datapoint_id, subcategory_id))
-        datapoint = cursor.fetchone()
+        cursor = db1.cursor(dictionary=True)
+        cursor.execute(
+            "DELETE FROM Datapoints WHERE subcategory_id IN (SELECT id FROM Subcategories WHERE category_id = %s)", (category_id,)
+        )
+        cursor.execute("DELETE FROM Subcategories WHERE category_id = %s", (category_id,))
+        cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
+        db1.commit()
+        return jsonify({"message": "Category and its related data deleted successfully!"}), 200
 
-        if not datapoint:
-            return jsonify({"error": "Datapoint not found"}), 404
-
-        cursor.execute("DELETE FROM Datapoints WHERE id = %s", (datapoint_id,))
-        db.commit()
-
-    except mysql.connector.Error as err:
+    except Exception as e:
+        db1.rollback()    
         return jsonify({"error": f"Database error: {str(err)}"}), 500
-    
+
     return jsonify({"message": "Datapoint deleted successfully!"}), 200
 
 
@@ -100,7 +108,6 @@ def get_categories_with_details():
         cursor = db1.cursor(dictionary=True)
         cursor.execute("SELECT * FROM Categories")
         categories = cursor.fetchall()
-
         for category in categories:
             category_id = category['id']
             cursor.execute(
