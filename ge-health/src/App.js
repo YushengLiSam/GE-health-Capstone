@@ -37,6 +37,8 @@ import Sidebar from './Components/builder/Sidebar';
 import RuleBuilder from './Components/builder/RuleBuilder';
 import AnnotationBuilder from './Components/builder/AnnotationBuilder';
 import UsersRoles from './Components/builder/UsersRoles';
+import PatientInformation from './Components/PatientInformation';
+import UserInterface from './Components/UserInterface/UIStructure'
 import './App.css';
 
 function App() {
@@ -52,6 +54,8 @@ function App() {
             <Route path="/rule-builder" element={<RuleBuilder />} />
             <Route path="/annotation-builder" element={<AnnotationBuilder />} />
             <Route path="/users-roles" element={<UsersRoles />} />
+            <Route path="/patient-info" element={<PatientInformation />} />
+            <Route path="/ui" element={<UserInterface />} />
           </Routes>
         </div>
       </div>
