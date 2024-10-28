@@ -28,7 +28,6 @@ def index():
 # POST /categories
 # -------------------------
 
-
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
     data = request.json
@@ -74,15 +73,18 @@ def add_categories():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# For fetching a specific category (provided through a JSON file with category name)
+
 @api_routes.route('/get_category', methods=['POST'])
 def get_category():
     data = request.json
     category_name = data.get('name')
-    print(category_name)
+    # If name is provided, fetch that specific category. Else, fetch all categories
+
     cursor = db1.cursor(dictionary=True)
+
     try:
         if category_name:
-            # If a category name is provided, fetch that specific category
             cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
             category = cursor.fetchone()
 
@@ -119,6 +121,7 @@ def get_category():
 
             category['subcategories'] = subcategories
             return jsonify(category), 200
+
         else:
             # If no category name is provided, return all categories
             cursor.execute("SELECT * FROM Categories")
@@ -156,76 +159,50 @@ def get_category():
                 category['subcategories'] = subcategories
 
             return jsonify({"categories": categories}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500        
 
 # -----------------------
 # DELETE /categories
 # -----------------------
+# Still working on this implementation
 
-@api_routes.route('/categories/<int:category_id>', methods=['DELETE'])
-def delete_category(category_id):
+@api_routes.route('/categories', methods=['DELETE'])
+def delete_category():
+    data = request.json
+    category_name = data.get('name')
+    
+    if not category_name:
+        return jsonify({"error": "Category name is required"}), 400
+
     try:
         cursor = db1.cursor(dictionary=True)
+        # First, delete the associated datapoints
         cursor.execute(
-            "DELETE FROM Datapoints WHERE subcategory_id IN (SELECT id FROM Subcategories WHERE category_id = %s)", (category_id,)
+            "DELETE FROM Datapoints WHERE subcategory_id IN (SELECT id FROM Subcategories WHERE category_id = (SELECT id FROM Categories WHERE name = %s))", 
+            (category_name,)
         )
-        cursor.execute("DELETE FROM Subcategories WHERE category_id = %s", (category_id,))
-        cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
+
+        # Now delete the subcategories
+        cursor.execute("DELETE FROM Subcategories WHERE category_id = (SELECT id FROM Categories WHERE name = %s)", (category_name,))
+
+        # Finally, delete the category
+        cursor.execute("DELETE FROM Categories WHERE category_id = (SELECT id FROM Categories WHERE name = %s)", (category_name,))
+
         db1.commit()
+
         return jsonify({"message": "Category and its related data deleted successfully!"}), 200
 
     except Exception as e:
-        db1.rollback()    
-        return jsonify({"error": f"Database error: {str(err)}"}), 500
-
-    return jsonify({"message": "Datapoint deleted successfully!"}), 200
+        db1.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
 
 
 # -------------------------
 # GET /categories
 # -------------------------
 
-'''
-# get specific category
-@api_routes.route('/categories/<string:category_name>', methods=['GET'])
-def get_category(category_name):
-    try:
-        cursor = db1.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
-        category = cursor.fetchone()
-
-        if category is None:
-            return jsonify({"error": "Category not found"}), 404
-        
-        cursor.execute("SELECT * FROM Subcategories WHERE category_id = %s", (category['id'],))
-        subcategories = cursor.fetchall()
-
-        category['subcategories'] = []
-
-        for subcategory in subcategories:
-            subcategory_id = subcategory['id']
-            # Query to get datapoints related to the subcategory
-            cursor.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
-            datapoints = cursor.fetchall()
-
-            subcategory['datapoints'] = []
-            for datapoint in datapoints:
-                datapoint_id = datapoint['id']
-                if datapoint['data_type'].lower() == 'list':
-                    # Query to get list items if the datapoint is of type list
-                    cursor.execute("SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
-                    list_items = cursor.fetchall()
-                    datapoint['listItems'] = [item['value'] for item in list_items]
-                
-                subcategory['datapoints'].append(datapoint)
-
-            category['subcategories'].append(subcategory)
-
-        return jsonify(category), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-'''
 @api_routes.route('/categories', methods=['GET'])
 def get_categories_with_details():
     try:
@@ -259,10 +236,7 @@ def get_categories_with_details():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# ------------------------
-# POST /categories/<int:category_id>/subcategories
-# ------------------------
-
+# Still implementing add / delete / get functions for subcategories
 
 # -------------------------
 # GET /operands
