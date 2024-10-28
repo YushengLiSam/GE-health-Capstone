@@ -1,0 +1,148 @@
+/* General Layout */
+.container {
+    margin: 20px auto;
+    max-width: 1200px;
+  }
+  
+  /* Header Styling */
+  .header {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  .header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .header p {
+    margin: 5px 0;
+    color: #6c757d;
+  }
+  
+
+ 
+  
+  
+  
+  
+  /* Alerts Styling */
+  .alert-container {
+    margin-top: 15px;
+  }
+  
+  .alert {
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    border-radius: 8px;
+  }
+  
+/* Tab Navigation Styling */
+.horizontal-tabs {
+    display: flex;
+    justify-content: space-between; /* Distribute tabs evenly across the row */
+    border-bottom: 2px solid #dee2e6;
+    margin-bottom: 15px;
+  }
+  
+  /* Tab Links Styling */
+  .horizontal-tabs .nav-link {
+    flex: 1; /* Make all tabs take equal space */
+    text-align: center;
+    padding: 12px;
+    font-size: 16px;
+    border: none;
+    border-radius: 0;
+    transition: background-color 0.2s, color 0.2s;
+    margin-right: 5px; /* Add space between tabs */
+  }
+  
+  .horizontal-tabs .nav-link:last-child {
+    margin-right: 0; /* No margin on the last tab */
+  }
+  
+  /* Active Tab Styling #4e397e */
+  .horizontal-tabs .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+  }
+  
+  /* Hover Effect */
+  .horizontal-tabs .nav-link:hover {
+    background-color: #e9ecef;
+    color: #212529;
+  }
+  
+  /* Tab Content Styling */
+  .tab-content {
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background-color: #ffffff;
+  }
+  
+  /* Responsive Layout */
+  @media (max-width: 768px) {
+    .horizontal-tabs {
+      flex-direction: column;
+    }
+  
+    .horizontal-tabs .nav-link {
+      margin-right: 0;
+      margin-bottom: 5px;
+    }
+  }
+  
+  /* Form Styling */
+  form {
+    margin-top: 10px;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .form-control {
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ced4da;
+  }
+  
+  textarea.form-control {
+    resize: none;
+  }
+  
+  button {
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  /* Responsive Layout */
+  @media (max-width: 768px) {
+    .container {
+      width: 90%;
+    }
+  
+    .header h2 {
+      font-size: 20px;
+    }
+  
+    .tab-navigation .nav-link {
+      font-size: 14px;
+    }
+  
+    .form-control {
+      font-size: 14px;
+    }
+  }
+  

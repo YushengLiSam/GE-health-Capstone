@@ -17,6 +17,43 @@ body {
   padding: 20px; /* Padding around the content */
 }
 
+.Config {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* TopBar spans the full width at the top */
+.top-bar {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* Sidebar takes a fixed width on the left */
+.sidebar-container {
+  display: flex;
+  width: 200px;
+  position: fixed;
+  top: 60px; /* Adjust this to match the height of TopBar */
+  bottom: 0;
+  left: 0;
+  overflow-y: auto;
+}
+
+/* Content area takes up all remaining space on the right */
+.content {
+  flex-grow: 1;
+  margin-left: 200px; /* Matches the sidebar width */
+  margin-top: 60px; /* Matches the top bar height */
+  padding: 20px;
+  background-color: #f7f7f7;
+  min-height: calc(100vh - 60px); /* Ensure it spans full height, minus top bar */
+}
+
 .App-header {
   background-color: #ffffff; /* White background for the header */
   padding: 40px 20px; /* Padding for the header */
