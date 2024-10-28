@@ -31,47 +31,48 @@ def index():
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
     data = request.json
-    categories = data.get('categories', [])
-
+    cursor = db1.cursor()
+    # categories = data.get('categories', [])
     try:
-        for category in categories:
-            category_name = category['name']
-            cursor = db1.cursor()
-            cursor.execute(
-                "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
-            category_id = cursor.lastrowid
+        for category in data['categories']:
+            # Insert category
+            category_name = category['name'].strip()  # Remove any extra spaces
+            cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category_name,))
+            category_id = cursor.lastrowid  # Get the last inserted ID
 
-            for subcategory in category.get('subcategories', []):
-                subcategory_name = subcategory['name']
-                cursor.execute(
-                    "INSERT INTO Subcategories (category_id, name) VALUES (%s, %s)", (category_id, subcategory_name))
-                subcategory_id = cursor.lastrowid
+            for subcategory in category['subcategories']:
+                # Insert subcategory
+                subcategory_name = subcategory['name'].strip()
+                cursor.execute("INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
+                subcategory_id = cursor.lastrowid  # Get the last inserted ID
 
-                for datapoint in subcategory.get('datapoints', []):
-                    datapoint_name = datapoint['name']
-                    # Ensure data type matches ENUM definition
+                for datapoint in subcategory['datapoints']:
+
+                    datapoint_name = datapoint['name'].lower()
                     data_type = datapoint['datatype'].lower()
                     is_mandatory = datapoint['isMandatory']
+
                     cursor.execute(
                         "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
                         (subcategory_id, datapoint_name, data_type, is_mandatory)
                     )
                     datapoint_id = cursor.lastrowid
 
+                    print("Inserting datapoint:", datapoint)
                     # If the data type is List, save the list items
                     if data_type == 'list':
-                        list_items = datapoint.get('listItems', [])
-                        for item in list_items:
+                        for item in datapoint['listItems']:
                             cursor.execute(
                                 "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
                                 (datapoint_id, item)
                             )
-
+        # Commit all changes
         db1.commit()
-        
-        return jsonify({"message": "Categories and related data added successfully!"}), 201
+        return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 201
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
 
 # For fetching a specific category (provided through a JSON file with category name)
 
