@@ -1,0 +1,49 @@
+/* Basic styles for the dropdown */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    background-color: #ADA6C4;
+    /* Adjusted color to match purple */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.caret {
+    margin-left: 10px;
+    font-size: 12px;
+}
+
+.dropdown-menu {
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    margin-top: 5px;
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    z-index: 1;
+}
+
+.dropdown-item {
+    padding: 10px 15px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover,
+.dropdown-item.active {
+    background-color: #6348A3;
+    /* Highlight color */
+    color: white;
+}

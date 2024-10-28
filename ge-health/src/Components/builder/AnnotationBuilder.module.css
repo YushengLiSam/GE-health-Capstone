@@ -18,7 +18,7 @@
 
 .export-button,
 .import-button {
-  background-color: #ADA6C4; /* Purple-Secondary-300 for a distinct look */
+  background-color: #ADA6C4;
   color: white;
   padding: 8px 12px;
   border-radius: 5px;
@@ -28,10 +28,8 @@
 
 .export-button:hover,
 .import-button:hover {
-  background-color: #A09AB7; /* Purple-Secondary-350 */
+  background-color: #A09AB7;
 }
-
-/* Other styles */
 
 .category, .subcategory, .datapoint {
   padding: 15px;
@@ -40,20 +38,22 @@
 }
 
 .category {
-  background-color: #E7E5F0; /* Purple-Secondary-50 */
+  background-color: #E7E5F0;
+  margin-bottom: 20px;
 }
 
 .subcategory {
-  background-color: #D6D2E4; /* Purple-Secondary-100 */
+  background-color: #D6D2E4;
   margin-left: 20px;
+  margin-bottom: 15px;
 }
 
 .datapoint {
-  background-color: #C5BFD9; /* Purple-Secondary-200 */
+  background-color: #C5BFD9;
   margin-left: 40px;
+  margin-bottom: 10px;
 }
 
-/* Style for input fields and other buttons */
 input[type="text"], select {
   padding: 8px;
   margin-right: 10px;
@@ -65,16 +65,16 @@ button {
   margin: 5px;
   padding: 8px 12px;
   border-radius: 5px;
-  background-color: #6348A3; /* Purple-Primary-450 */
+  background-color: #6348A3;
   color: white;
   border: none;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #554087; /* Purple-Primary-475 */
+  background-color: #554087;
 }
 
 button:active {
-  background-color: #ADA6C4; /* Purple-Secondary-300 */
+  background-color: #ADA6C4;
 }
