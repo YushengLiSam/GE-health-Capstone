@@ -1,157 +1,73 @@
 from flask import Blueprint, jsonify, request
 import mysql.connector
 
-# Connect to the database
-db = mysql.connector.connect(
+# Database connections
+db1 = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
     password="",
-    database="annotations"
+    database="annotations"  # Annotation Builder database
 )
 
-# Connect to static database
 db2 = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
     password="",
-    database="static_annotation"
+    database="static_annotation"  # Static operators database
 )
 
-# Create Blueprints for routes
-category_routes = Blueprint('category_routes', __name__)
-subcategory_routes = Blueprint('subcategory_routes', __name__)
-datapoint_routes = Blueprint('datapoint_routes', __name__)
-operand_routes = Blueprint('operand_routes', __name__)
+# Create Blueprint for routes
+api_routes = Blueprint('api_routes', __name__)
 
 # -------------------------
-# Category Routes
+# POST /categories
 # -------------------------
 
 
-@category_routes.route('/', methods=['GET'])
-def get_categories():
-    cursor = db.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM Categories")
-    categories = cursor.fetchall()
-    return jsonify(categories), 200
-
-
-@category_routes.route('/', methods=['POST'])
-def add_category():
+@api_routes.route('/categories', methods=['POST'])
+def add_categories():
     data = request.json
-    if 'name' not in data or not data['name'].strip():
-        return jsonify({"error": "Category name is required"}), 400
-
-    category_name = data['name']
-    try:
-        cursor = db.cursor()
-        cursor.execute(
-            "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
-        db.commit()
-    except mysql.connector.Error as err:
-        return jsonify({"error": f"Database error: {str(err)}"}), 500
-
-    return jsonify({"message": "Category added successfully!"}), 201
-
-@category_routes.route('/', methods=['DELETE'])
-def delete_category(category_id):
-    try:
-        cursor = db.cursor()
-        cursor.execute(
-            "DELETE FROM Categories WHERE id = %s", (category_id,))
-        db.commit()
-        if cursor.rowcount == 0:
-            return jsonify({"error": "Category not found"}), 404
-    except mysql.connector.Error as err:
-        return jsonify({"error": f"Database error: {str(err)}"}), 500
-    return jsonify({"message": "Category deleted successfully!"}), 200
-
-# -------------------------
-# Subcategory Routes
-# -------------------------
-
-
-@subcategory_routes.route('/<int:category_id>', methods=['GET'])
-def get_subcategories(category_id):
-    cursor = db.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
-    subcategories = cursor.fetchall()
-    if not subcategories:
-        return jsonify({"message": "No subcategories found for this category"}), 404
-    return jsonify(subcategories), 200
-
-
-@subcategory_routes.route('/<int:category_id>', methods=['POST'])
-def add_subcategory(category_id):
-    data = request.json
-    if 'name' not in data or not data['name'].strip():
-        return jsonify({"error": "Subcategory name is required"}), 400
-
-    subcategory_name = data['name']
-    try:
-        cursor = db.cursor()
-        cursor.execute("INSERT INTO Subcategories (category_id, name) VALUES (%s, %s)",
-                       (category_id, subcategory_name))
-        db.commit()
-    except mysql.connector.Error as err:
-        return jsonify({"error": f"Database error: {str(err)}"}), 500
-
-    return jsonify({"message": "Subcategory added successfully!"}), 201
-
-@subcategory_routes.route('/<int:category_id>', methods=['DELETE'])
-def delete_subcategory(category_id, subcategory_id):
-    try:
-        cursor = db.cursor()
-        cursor.execute("SELECT * FROM Subcategories WHERE id = %s AND category_id = %s",
-                       (subcategory_id, category_id))
-        subcategory = cursor.fetchone()
-
-        if not subcategory:
-            return jsonify({"error": "Subcategory not found"}), 404
-        cursor.execute("DELETE FROM Subcategories WHERE id = %s", (subcategory_id,))
-        db.commit()
-    except mysql.connector.Error as err:
-        return jsonify({"error": f"Database error: {str(err)}"}), 500
-
-    return jsonify({"message": "Subcategory deleted successfully!"}), 200
-# -------------------------
-# Datapoint Routes
-# -------------------------
-
-
-@datapoint_routes.route('/<int:subcategory_id>', methods=['GET'])
-def get_datapoints(subcategory_id):
-    cursor = db.cursor(dictionary=True)
-    cursor.execute(
-        "SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
-    datapoints = cursor.fetchall()
-    if not datapoints:
-        return jsonify({"message": "No datapoints found for this subcategory"}), 404
-    return jsonify(datapoints), 200
-
-
-@datapoint_routes.route('/<int:subcategory_id>', methods=['POST'])
-def add_datapoint(subcategory_id):
-    data = request.json
-    if 'name' not in data or not data['name'].strip():
-        return jsonify({"error": "Datapoint name is required"}), 400
-    if 'data_type' not in data or data['data_type'] not in ['numeric', 'text', 'list', 'boolean', 'number_spinner']:
-        return jsonify({"error": "Valid data_type is required"}), 400
-
-    name = data['name']
-    data_type = data['data_type']
-    is_mandatory = data.get('is_mandatory', False)
+    categories = data.get('categories', [])
 
     try:
-        cursor = db.cursor()
-        cursor.execute("INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
-                       (subcategory_id, name, data_type, is_mandatory))
-        db.commit()
-    except mysql.connector.Error as err:
-        return jsonify({"error": f"Database error: {str(err)}"}), 500
+        for category in categories:
+            category_name = category['name']
+            cursor = db1.cursor()
+            cursor.execute(
+                "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
+            category_id = cursor.lastrowid
 
-    return jsonify({"message": "Datapoint added successfully!"}), 201
+            for subcategory in category.get('subcategories', []):
+                subcategory_name = subcategory['name']
+                cursor.execute(
+                    "INSERT INTO Subcategories (category_id, name) VALUES (%s, %s)", (category_id, subcategory_name))
+                subcategory_id = cursor.lastrowid
+
+                for datapoint in subcategory.get('datapoints', []):
+                    datapoint_name = datapoint['name']
+                    # Ensure data type matches ENUM definition
+                    data_type = datapoint['datatype'].lower()
+                    is_mandatory = datapoint['isMandatory']
+                    cursor.execute(
+                        "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+                        (subcategory_id, datapoint_name, data_type, is_mandatory)
+                    )
+                    datapoint_id = cursor.lastrowid
+
+                    # If the data type is List, save the list items
+                    if data_type == 'list':
+                        list_items = datapoint.get('listItems', [])
+                        for item in list_items:
+                            cursor.execute(
+                                "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                                (datapoint_id, item)
+                            )
+
+        db1.commit()
+
+        return jsonify({"message": "Categories and related data added successfully!"}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @datapoint_routes.route('/<int:subcategory_id>', methods=['DELETE'])
 def delete_datapoint(subcategory_id, datapoint_id):
@@ -174,14 +90,55 @@ def delete_datapoint(subcategory_id, datapoint_id):
 
 
 # -------------------------
-# Operand Routes
+# GET /categories
 # -------------------------
 
 
-@operand_routes.route('/', methods=['GET'])
+@api_routes.route('/categories', methods=['GET'])
+def get_categories_with_details():
+    try:
+        cursor = db1.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Categories")
+        categories = cursor.fetchall()
+
+        for category in categories:
+            category_id = category['id']
+            cursor.execute(
+                "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
+            subcategories = cursor.fetchall()
+            category['subcategories'] = subcategories
+
+            for subcategory in subcategories:
+                subcategory_id = subcategory['id']
+                cursor.execute(
+                    "SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+                datapoints = cursor.fetchall()
+                subcategory['datapoints'] = datapoints
+
+                for datapoint in datapoints:
+                    datapoint_id = datapoint['id']
+                    if datapoint['data_type'].lower() == 'list':
+                        cursor.execute(
+                            "SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
+                        list_items = cursor.fetchall()
+                        datapoint['listItems'] = [item['value']
+                                                  for item in list_items]
+
+        return jsonify({"categories": categories}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# -------------------------
+# GET /operands
+# -------------------------
+
+
+@api_routes.route('/operands', methods=['GET'])
 def get_operands():
-    cursor = db2.cursor(dictionary=True)
-    cursor.execute("SELECT symbol FROM Symbols")
-    operands = cursor.fetchall()
-    operand_list = [operand['symbol'] for operand in operands]
-    return jsonify(operand_list), 200
+    try:
+        cursor = db2.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Symbols")
+        symbols = cursor.fetchall()
+        return jsonify({"symbols": symbols}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
