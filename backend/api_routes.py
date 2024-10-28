@@ -53,6 +53,19 @@ def add_category():
 
     return jsonify({"message": "Category added successfully!"}), 201
 
+@category_routes.route('/', methods=['DELETE'])
+def delete_category(category_id):
+    try:
+        cursor = db.cursor()
+        cursor.execute(
+            "DELETE FROM Categories WHERE id = %s", (category_id,))
+        db.commit()
+        if cursor.rowcount == 0:
+            return jsonify({"error": "Category not found"}), 404
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {str(err)}"}), 500
+    return jsonify({"message": "Category deleted successfully!"}), 200
+
 # -------------------------
 # Subcategory Routes
 # -------------------------
@@ -86,6 +99,22 @@ def add_subcategory(category_id):
 
     return jsonify({"message": "Subcategory added successfully!"}), 201
 
+@subcategory_routes.route('/<int:category_id>', methods=['DELETE'])
+def delete_subcategory(category_id, subcategory_id):
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM Subcategories WHERE id = %s AND category_id = %s",
+                       (subcategory_id, category_id))
+        subcategory = cursor.fetchone()
+
+        if not subcategory:
+            return jsonify({"error": "Subcategory not found"}), 404
+        cursor.execute("DELETE FROM Subcategories WHERE id = %s", (subcategory_id,))
+        db.commit()
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {str(err)}"}), 500
+
+    return jsonify({"message": "Subcategory deleted successfully!"}), 200
 # -------------------------
 # Datapoint Routes
 # -------------------------
@@ -123,6 +152,26 @@ def add_datapoint(subcategory_id):
         return jsonify({"error": f"Database error: {str(err)}"}), 500
 
     return jsonify({"message": "Datapoint added successfully!"}), 201
+
+@datapoint_routes.route('/<int:subcategory_id>', methods=['DELETE'])
+def delete_datapoint(subcategory_id, datapoint_id):
+    try:
+        cursor = db.cursor()
+        cursor.execute("SELECT * FROM Datapoints WHERE id = %s AND subcategory_id = %s",
+                       (datapoint_id, subcategory_id))
+        datapoint = cursor.fetchone()
+
+        if not datapoint:
+            return jsonify({"error": "Datapoint not found"}), 404
+
+        cursor.execute("DELETE FROM Datapoints WHERE id = %s", (datapoint_id,))
+        db.commit()
+
+    except mysql.connector.Error as err:
+        return jsonify({"error": f"Database error: {str(err)}"}), 500
+    
+    return jsonify({"message": "Datapoint deleted successfully!"}), 200
+
 
 # -------------------------
 # Operand Routes
