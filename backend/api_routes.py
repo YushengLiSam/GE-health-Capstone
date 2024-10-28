@@ -180,16 +180,9 @@ def delete_category():
     try:
         cursor = db1.cursor(dictionary=True)
         # First, delete the associated datapoints
-        cursor.execute(
-            "DELETE FROM Datapoints WHERE subcategory_id IN (SELECT id FROM Subcategories WHERE category_id = (SELECT id FROM Categories WHERE name = %s))", 
-            (category_name,)
-        )
+        cursor.execute("CREATE TEMPORARY TABLE tmp_ids AS SELECT id FROM Categories WHERE id = (SELECT id FROM Categories WHERE name = %s)", (category_name,))
 
-        # Now delete the subcategories
-        cursor.execute("DELETE FROM Subcategories WHERE category_id = (SELECT id FROM Categories WHERE name = %s)", (category_name,))
-
-        # Finally, delete the category
-        cursor.execute("DELETE FROM Categories WHERE category_id = (SELECT id FROM Categories WHERE name = %s)", (category_name,))
+        cursor.execute("DELETE FROM Categories WHERE id in (SELECT id FROM tmp_ids)")
 
         db1.commit()
 
