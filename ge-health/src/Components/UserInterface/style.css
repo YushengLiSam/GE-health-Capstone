@@ -66,9 +66,9 @@
     margin-right: 0; /* No margin on the last tab */
   }
   
-  /* Active Tab Styling */
+  /* Active Tab Styling #4e397e */
   .horizontal-tabs .nav-link.active {
-    background-color: #4e397e;
+    background-color: #0d6efd;
     color: white;
     font-weight: bold;
     border-radius: 8px;
