@@ -11,6 +11,7 @@ function Sidebar() {
         <NavLink to="/rule-builder" activeClassName="active">Rule Builder</NavLink>
         <NavLink to="/annotation-builder" activeClassName="active">Annotation Builder</NavLink>
         <NavLink to="/users-roles" activeClassName="active">Users & Roles</NavLink>
+        <NavLink to="/patient-info" activeClassName="active">Patient Information</NavLink>
       </nav>
     </div>
   );

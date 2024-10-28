@@ -35,7 +35,7 @@ const PatientInformation = () => {
   // TODO api implement
   const handleSubmit = async (e) => {
     e.preventDefault();
-    navigate('/gallery');
+    navigate('/ui');
     // // API call to store the patient info
     // try {
     //   const response = await fetch('https://your-api-url.com/patients', {
@@ -115,7 +115,7 @@ const PatientInformation = () => {
 
           
           {/* Submit Button */}
-          <button type="submit" className={styles.submitButton} disabled={!isFormValid}>
+          <button type="submit" disabled={!isFormValid}>
             Submit
           </button>
         </form>
