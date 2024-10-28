@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
+import './form.css';
 
 function FHRForm() {
   const [formData, setFormData] = useState({
@@ -30,13 +31,14 @@ function FHRForm() {
   return (
     <Form onSubmit={handleSubmit}>
       {Object.keys(formData).map((key) => (
-        <Form.Group className="mb-3" key={key} controlId={key}>
+        <Form.Group className="mb-3 input-group" key={key} controlId={key}>
           <Form.Label>{key.replace(/([A-Z])/g, ' $1')}</Form.Label>
           <Form.Control
             type="text"
             name={key}
             value={formData[key]}
             onChange={handleChange}
+            className="input-field"
           />
         </Form.Group>
       ))}
