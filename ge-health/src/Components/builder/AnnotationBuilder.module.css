@@ -18,7 +18,7 @@
 
 .export-button,
 .import-button {
-  background-color: #ADA6C4; /* Purple-Secondary-300 for a distinct look */
+  background-color: #ADA6C4;
   color: white;
   padding: 8px 12px;
   border-radius: 5px;
@@ -28,10 +28,8 @@
 
 .export-button:hover,
 .import-button:hover {
-  background-color: #A09AB7; /* Purple-Secondary-350 */
+  background-color: #A09AB7;
 }
-
-/* Other styles */
 
 .category, .subcategory, .datapoint {
   padding: 15px;
@@ -40,41 +38,55 @@
 }
 
 .category {
-  background-color: #E7E5F0; /* Purple-Secondary-50 */
+  background-color: #E7E5F0;
 }
 
 .subcategory {
-  background-color: #D6D2E4; /* Purple-Secondary-100 */
+  background-color: #D6D2E4;
   margin-left: 20px;
 }
 
 .datapoint {
-  background-color: #C5BFD9; /* Purple-Secondary-200 */
+  background-color: #C5BFD9;
   margin-left: 40px;
 }
 
-/* Style for input fields and other buttons */
-input[type="text"], select {
+.custom-input {
+  width: 100%;
+  max-width: 280px;
+  padding: 8px;
+  font-size: 14px; /* Align with dropdown font size */
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  resize: none;
+  margin-top: 8px;
+  box-sizing: border-box; /* Ensures padding does not add extra width */
+  font-family: inherit; /* Inherit font from parent to match dropdown */
+  color: #333; /* Ensure text color aligns with dropdown */
+}
+
+input[type="text"], select, .custom-input {
   padding: 8px;
   margin-right: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
+  font-size: 14px;
 }
 
 button {
   margin: 5px;
   padding: 8px 12px;
   border-radius: 5px;
-  background-color: #6348A3; /* Purple-Primary-450 */
+  background-color: #6348A3;
   color: white;
   border: none;
   cursor: pointer;
 }
 
 button:hover {
-  background-color: #554087; /* Purple-Primary-475 */
+  background-color: #554087;
 }
 
 button:active {
-  background-color: #ADA6C4; /* Purple-Secondary-300 */
+  background-color: #ADA6C4;
 }

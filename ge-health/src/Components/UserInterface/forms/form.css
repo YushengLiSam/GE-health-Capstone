@@ -1,0 +1,21 @@
+/* Add padding and spacing for the input fields */
+.input-field {
+    padding: 12px;
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 5px;
+  }
+  
+  .input-group {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Optional: Add hover effect for inputs */
+  .input-field:focus {
+    outline: none;
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
