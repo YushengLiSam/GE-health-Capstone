@@ -31,7 +31,7 @@ function UserInterface() {
 
   return (
     <div className="container">
-      <HeaderAndPatientInfo patient={patientData} />
+      <HeaderAndPatientInfo patient={patientData} patientName = {patientName}/>
       <StageSelector />
       <AlertDisplay alerts={alerts} />
       <TabNavigation />
