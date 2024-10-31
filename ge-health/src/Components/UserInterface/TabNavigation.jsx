@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
-import FHRForm from './forms/FHRForm';
+import Forms from './forms/Forms';
 import ContractionsForm from './forms/ContractionsForm';
 import PatientCareForm from './forms/PatientCareForm';
 
@@ -16,7 +16,7 @@ function TabNavigation() {
         className="horizontal-tabs"
       >
         <Tab eventKey="fhr" title="FHR A" >
-          {activeKey === 'fhr' && <FHRForm />} {/* Render only when active */}
+          {activeKey === 'fhr' && <Forms />} {/* Render only when active */}
         </Tab>
         <Tab eventKey="contractions" title="Contractions" >
           {activeKey === 'contractions' && <ContractionsForm />} {/* Render only when active */}
