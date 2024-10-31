@@ -1,9 +1,11 @@
+/* General layout for the annotation builder */
 .annotation-builder {
   width: 100%;
   padding: 20px;
   box-sizing: border-box;
 }
 
+/* Header styling */
 .header {
   display: flex;
   justify-content: space-between;
@@ -16,70 +18,141 @@
   gap: 10px;
 }
 
+/* Button styling for export and import */
 .export-button,
-.import-button {
-  background-color: #ADA6C4;
+.import-button,
+.save,
+.cancel {
+  background-color: #6348A3; /* Purple secondary color */
   color: white;
   padding: 8px 12px;
   border-radius: 5px;
   border: none;
   cursor: pointer;
+  font-size: 16px;
 }
 
 .export-button:hover,
-.import-button:hover {
-  background-color: #A09AB7;
+.import-button:hover,
+.save:hover,
+.cancel:hover {
+  background-color: #A09AB7; /* Slightly darker shade on hover */
 }
 
-.category, .subcategory, .datapoint {
+.add-category {
+  background-color: #6348A3; /* Primary purple */
+  color: white;
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 15px;
+}
+
+.add-category:hover {
+  background-color: #554087;
+}
+
+/* Category, Subcategory, and Datapoint containers */
+.category {
+  background-color: #E7E5F0; /* Light background */
   padding: 15px;
   margin-bottom: 15px;
   border-radius: 8px;
 }
 
-.category {
-  background-color: #E7E5F0;
+
+.categoryRow {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between dropdown and buttons */
+  margin-bottom: 10px; /* Space below this row */
 }
 
+.category select {
+  margin-right: 10px; /* Adds space between dropdown and buttons */
+}
+
+/* Nested structure for subcategories and datapoints */
 .subcategory {
   background-color: #D6D2E4;
   margin-left: 20px;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.subcategory select {
+  margin-right: 10px; /* Adds space between dropdown and buttons */
+}
+
+.subcategoryRow {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between dropdown and buttons */
+  margin-bottom: 10px; /* Space below this row */
+}
+
+/* Button alignment within subcategory and category */
+.category button,
+.subcategory button {
+  margin-top: 10px;
+  margin-right: 5px;
 }
 
 .datapoint {
   background-color: #C5BFD9;
   margin-left: 40px;
+  display: flex;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  align-items: center; /* Align items in a single row */
+  gap: 10px; /* Space between elements */
 }
 
-.custom-input {
-  width: 100%;
-  max-width: 280px;
+.datapoint-row {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adjust spacing between elements */
+  margin-top: 10px;
+}
+
+
+/* Editable dropdown and input field styling */
+select, input[type="text"], .editable-dropdown {
+
   padding: 8px;
-  font-size: 14px; /* Align with dropdown font size */
   border: 1px solid #ddd;
   border-radius: 5px;
-  resize: none;
-  margin-top: 8px;
-  box-sizing: border-box; /* Ensures padding does not add extra width */
-  font-family: inherit; /* Inherit font from parent to match dropdown */
-  color: #333; /* Ensure text color aligns with dropdown */
+  font-size: 16px;
+  width: auto;
 }
 
-input[type="text"], select, .custom-input {
-  padding: 8px;
-  margin-right: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 14px;
+.editable-dropdown {
+  width: 200px; /* Fixed width for dropdowns */
 }
 
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+}
+
+/* Checkbox label styling */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 16px;
+}
+
+/* Button styling for nested components */
 button {
-  margin: 5px;
-  padding: 8px 12px;
-  border-radius: 5px;
   background-color: #6348A3;
   color: white;
   border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
   cursor: pointer;
 }
 
@@ -87,6 +160,31 @@ button:hover {
   background-color: #554087;
 }
 
-button:active {
-  background-color: #ADA6C4;
+/* Specific styling for the row alignment of dropdowns and checkbox */
+.data-type-dropdown {
+  width: 120px; /* Dropdown width for data type */
+}
+
+.datapoint .mandatory-checkbox,
+.datapoint .data-type-dropdown {
+  display: flex;
+  align-items: center;
+}
+
+/* Styles for aligning elements in the same row */
+.datapoint {
+  flex-wrap: wrap; /* Allow wrapping for smaller screens */
+}
+
+/* Save and Cancel button styling */
+.save,
+.cancel {
+  margin-top: 20px;
+  margin-right: 10px;
+  background-color: #6348A3;
+}
+
+.save:hover,
+.cancel:hover {
+  background-color: #554087;
 }
