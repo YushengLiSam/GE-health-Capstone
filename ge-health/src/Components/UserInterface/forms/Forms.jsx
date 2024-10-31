@@ -2,24 +2,8 @@ import React, { useState } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import './form.css';
 
-const formFields = [
-    {
-      name: "Contraction frequency",
-      datatype: "Numeric",
-      inputType: "Textbox",
-      isMandatory: true
-    },
-    {
-      name: "Quality",
-      datatype: "List",
-      inputType: "Dropdown",
-      isMandatory: false,
-      listItems: ["Mild", "Moderate", "Strong"]
-    }
-  ];
-  
 
-function FHRForm() {
+function FHRForm({datapoints}) {
     const [formData, setFormData] = useState({});
   
     const handleChange = (e) => {
@@ -34,7 +18,7 @@ function FHRForm() {
   
     return (
       <Form onSubmit={handleSubmit}>
-        {formFields.map((field) => (
+        {datapoints.map((field) => (
           <Form.Group className="mb-3 input-group" key={field.name} controlId={field.name}>
             <Form.Label>{field.name}</Form.Label>
             {field.inputType === "Textbox" ? (
