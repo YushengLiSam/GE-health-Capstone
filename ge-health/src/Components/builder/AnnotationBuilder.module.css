@@ -61,6 +61,7 @@
   border-radius: 8px;
 }
 
+
 .categoryRow {
   display: flex;
   align-items: center;
@@ -120,6 +121,7 @@
 
 /* Editable dropdown and input field styling */
 select, input[type="text"], .editable-dropdown {
+
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 5px;

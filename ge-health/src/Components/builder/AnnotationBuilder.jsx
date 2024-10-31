@@ -33,6 +33,7 @@ function AnnotationBuilder() {
 
   const dataTypeOptions = ['Float', 'String', 'List'];
 
+
   const handleImportData = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -215,6 +216,7 @@ function AnnotationBuilder() {
     setCategories(updatedCategories);
   };
 
+
   const handleMandatoryChange = (categoryIndex, subcategoryIndex, datapointIndex) => {
     const updatedCategories = [...categories];
     updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].isMandatory = !updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].isMandatory;
@@ -262,6 +264,7 @@ function AnnotationBuilder() {
     // Reset categories to an empty array
     setCategories([]);
   };
+
 
   return (
     <div className={styles['annotation-builder']}>
@@ -325,6 +328,8 @@ function AnnotationBuilder() {
 
                 {subcategory.datapoints.map((datapoint, datapointIndex) => (
                   <div key={datapointIndex} className={styles.datapoint}>
+
+
                     <div className={styles['datapoint-row']}>
                       <EditableDropdown
                         options={datapointOptions.map(dp => dp.name)}
@@ -355,6 +360,7 @@ function AnnotationBuilder() {
                         Mandatory
                       </label>
                     </div>
+
                     <button onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}>Remove</button>
                   </div>
 
