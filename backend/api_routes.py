@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request
 import mysql.connector
+import json
 
 # Database connections
 db1 = mysql.connector.connect(
@@ -14,6 +15,12 @@ db2 = mysql.connector.connect(
     user="annotation_user",
     password="",
     database="static_annotation"  # Static operators database
+)
+db3 = mysql.connector.connect(
+    host="localhost",
+    user="annotation_user",
+    password="",
+    database="static_categories"  # Static categories database
 )
 
 # Create Blueprint for routes
@@ -73,7 +80,7 @@ def add_categories():
                             )
         # Commit all changes
         db1.commit()
-        return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 201
+        return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 200
 
     except Exception as e:
         db1.rollback()  # Rollback in case of error
@@ -179,7 +186,7 @@ def delete_category():
     category_name = data.get('name')
     
     if not category_name:
-        return jsonify({"error": "Category name is required"}), 400
+        return jsonify({"error": "Category name is required"}), 202
 
     try:
         cursor = db1.cursor(dictionary=True)
@@ -195,7 +202,7 @@ def delete_category():
 
     except Exception as e:
         db1.rollback()
-        return jsonify({"error": f"Database error: {str(e)}"}), 500
+        return jsonify({"error": f"Database error: {str(e)}"}), 600
 
 
 # -------------------------
@@ -243,11 +250,11 @@ def get_categories_with_details():
 
         return jsonify({"categories": categories}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 601
 
 
 # ------------------------
-# ADD Subcategories
+# POST /subcategories
 # ------------------------
 
 @api_routes.route('/subcategories', methods=['POST'])
@@ -295,14 +302,14 @@ def add_subcategories():
                         cursor.execute("INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",(datapoint_id, item))
         # Commit all changes
         db1.commit()
-        return jsonify({"message": "Subcategories, and datapoints added successfully."}), 201
+        return jsonify({"message": "Subcategories, and datapoints added successfully."}), 200
 
     except Exception as e:
         db1.rollback()  # Rollback in case of error
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 602
 
 # ------------------------
-# GET /get_subcategories
+# POST /get_subcategories
 # ------------------------
 # Return the subcategory with the subcategory_name, provided through a JSON File with the contents:"category_name":"<category_name>" "subcategory_name": "<subcategory_name>"
 
@@ -320,12 +327,9 @@ def get_subcategories():
         cursor.execute("SELECT id FROM categories WHERE name = %s", (category_name,))
         category_id = cursor.fetchone()
         if category_id:
-            print(category_id)
             category_id = category_id['id']
-            print(category_id)
         else:
             return jsonify({"error": "Category not found"}), 404
-        print(category_name)
         subcategory_name = data.get('subcategory_name')
         cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s", (category_id, subcategory_name))
         subcategories = cursor.fetchall()
@@ -354,7 +358,7 @@ def get_subcategories():
         return jsonify(subcategory), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 603
 
 # -------------------------
 # DELETE /subcategories
@@ -394,13 +398,58 @@ def delete_subcategories():
 
     except Exception as e:
         db1.rollback()
-        return jsonify({"error": f"Database error: {str(e)}"}), 500
+        return jsonify({"error": f"Database error: {str(e)}"}), 604
 
+# ------------------------
+# GET /static_categories
+# ------------------------
+# TODO: This method is not finished yet
+@api_routes.route('/static_categories', methods=['GET'])
+def get_static_categories_with_details():
+    try:
+        cursor = db3.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM Categories")
+        categories = cursor.fetchall()
+        for category in categories:
+            category_id = category['id']
+            cursor.execute(
+                "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
+            subcategories = cursor.fetchall()
+            category['subcategories'] = [] # new
+
+            for subcategory in subcategories:
+                subcategory_id = subcategory['id']
+                cursor.execute(
+                    "SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+                datapoints = cursor.fetchall()
+                subcategory['datapoints'] = []
+
+                for datapoint in datapoints:
+                    datapoint_dict = {
+                        'name': datapoint['name'],
+                        'datatype': datapoint['data_type'],
+                        'isMandatory': datapoint['is_mandatory']
+                    }
+                    datapoint_id = datapoint['id']
+                    if datapoint['data_type'].lower() == 'list':
+                        cursor.execute(
+                            "SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
+                        list_items = cursor.fetchall()
+                        datapoint['listItems'] = [item['value']
+                                                  for item in list_items]
+                    subcategory['datapoints'].append(datapoint_dict)
+            category['subcategories'].append({
+                    'name': subcategory['name'],  # Include the subcategory name
+                    'datapoints': subcategory['datapoints']
+                })
+
+        return jsonify({"categories": categories}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 605
 
 # -------------------------
 # GET /operands
 # -------------------------
-
 
 @api_routes.route('/operands', methods=['GET'])
 def get_operands():
@@ -410,4 +459,4 @@ def get_operands():
         symbols = cursor.fetchall()
         return jsonify({"symbols": symbols}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 606

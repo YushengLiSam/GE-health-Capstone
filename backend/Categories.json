@@ -1,0 +1,62 @@
+﻿{
+  "categories": [
+    {
+      "name": "Early/Latent Labor (Closed-4cm)",
+      "subcategories": [
+        { "name": "Patient interventions", "datapoints": [{ "name": "Patient position", "datatype": "String", "inputType": "Textbox", "isMandatory": false }] },
+        { "name": "FHR", "datapoints": [{ "name": "FHR Reading", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Contractions", "datapoints": [{ "name": "Contraction frequency", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "IV/Blood work", "datapoints": [{ "name": "Blood work", "datatype": "String", "inputType": "Textbox", "isMandatory": false }] },
+        { "name": "I/O (Intake/Output) Interventions", "datapoints": [{ "name": "Intake/Output", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": false }] },
+        { "name": "Medication Administration", "datapoints": [{ "name": "Medication name", "datatype": "String", "inputType": "Textbox", "isMandatory": false }] },
+        { "name": "Pain Management", "datapoints": [{ "name": "Pain level", "datatype": "List", "inputType": "Dropdown", "isMandatory": false, "listItems": ["Mild", "Moderate", "Severe"] }] },
+        { "name": "Vaginal Exam", "datapoints": [{ "name": "Dilation", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Membrane Status", "datapoints": [{ "name": "Status", "datatype": "String", "inputType": "Dropdown", "isMandatory": false, "listItems": ["Intact", "Ruptured"] }] },
+        { "name": "Fetal Position", "datapoints": [{ "name": "Position", "datatype": "String", "inputType": "Textbox", "isMandatory": false }] }
+      ]
+    },
+    {
+      "name": "Active Labor (5cm-8cm)",
+      "subcategories": [
+        { "name": "Patient interventions", "datapoints": [{ "name": "Patient position", "datatype": "String", "inputType": "Textbox", "isMandatory": false }] },
+        { "name": "FHR", "datapoints": [{ "name": "FHR Reading", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Contractions", "datapoints": [{ "name": "Contraction frequency", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Pain Management", "datapoints": [{ "name": "Pain level", "datatype": "List", "inputType": "Dropdown", "isMandatory": false, "listItems": ["Mild", "Moderate", "Severe"] }] },
+        { "name": "Vaginal Exam", "datapoints": [{ "name": "Dilation", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Epidural Placement or Pain medication", "datapoints": [{ "name": "Epidural", "datatype": "Boolean", "inputType": "Checkbox", "isMandatory": false }] },
+        { "name": "Vitals", "datapoints": [{ "name": "HR", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Respirations", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Blood pressure", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Pulse Ox", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Temperature", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] }
+      ]
+    },
+    {
+      "name": "Transition (8cm-10cm)",
+      "subcategories": [
+        { "name": "FHR", "datapoints": [{ "name": "FHR Reading", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Contractions", "datapoints": [{ "name": "Contraction frequency", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Vitals", "datapoints": [{ "name": "HR", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Respirations", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Blood pressure", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Pulse Ox", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Temperature", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] }
+      ]
+    },
+    {
+      "name": "Pushing/Delivery",
+      "subcategories": [
+        { "name": "FHR", "datapoints": [{ "name": "FHR Reading", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Contractions", "datapoints": [{ "name": "Contraction frequency", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Delivery time of infant", "datapoints": [{ "name": "Time", "datatype": "String", "inputType": "Textbox", "isMandatory": true }] }
+      ]
+    },
+    {
+      "name": "Expulsion of Placenta",
+      "subcategories": [
+        { "name": "Time of delivery of Placenta", "datapoints": [{ "name": "Time", "datatype": "String", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Estimated Blood Loss (EBL)", "datapoints": [{ "name": "Blood Loss", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] }
+      ]
+    },
+    {
+      "name": "Pre-Admission",
+      "subcategories": [
+        { "name": "Vitals", "datapoints": [{ "name": "HR", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "B/p", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Respirations", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "SpO2", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }, { "name": "Temp", "datatype": "Numeric", "inputType": "Textbox", "isMandatory": true }] },
+        { "name": "Blood type (Prenatal labs)", "datapoints": [{ "name": "Blood Type", "datatype": "String", "inputType": "Dropdown", "isMandatory": false, "listItems": ["A", "B", "AB", "O"] }] },
+        { "name": "Reason for Admission", "datapoints": [{ "name": "Admission Reason", "datatype": "List", "inputType": "Dropdown", "isMandatory": true, "listItems": ["Scheduled Induction", "Scheduled C-Section", "Rupture of Membranes", "Labor"] }] }
+      ]
+    }
+  ]
+}
