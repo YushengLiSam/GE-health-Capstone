@@ -37,6 +37,16 @@
   }
   
 /* Tab Navigation Styling */
+
+.tab-navigation {
+  padding: 20px;
+  width: 100%;
+  height: 100%; /* Ensure it takes full height of the parent container */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
 .horizontal-tabs {
     display: flex;
     justify-content: space-between; /* Distribute tabs evenly across the row */
@@ -75,18 +85,22 @@
   }
   
   /* Tab Content Styling */
-
-
   .tab-content {
     display: flex;
-    flex-direction: row;
     gap: 20px;
+    width: 100%;
+    flex-grow: 1;
+    box-sizing: border-box;
+    flex-direction: row;
   }
-  
+
   .summary {
-    flex: 1;
-    border-left: 1px solid #e0e0e0;
-    padding-left: 20px;
+    flex: 2;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #ffffff;
+    margin-left: auto;
   }
   
   .summary h3 {
@@ -121,7 +135,12 @@
   
   /* Form Styling */
   form {
-    margin-top: 10px;
+    flex: 6;
+    width: 75%; /* Explicitly set width to 3/4 */
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
   }
   
   .form-group {

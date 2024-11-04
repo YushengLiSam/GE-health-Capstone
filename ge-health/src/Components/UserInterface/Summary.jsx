@@ -3,7 +3,7 @@ import React from 'react';
 function Summary({ data, formData }) {
     return (
       <div className="summary">
-        <h3>Summary for {data.name}</h3>
+        <h3>Summary</h3>
         <ul>
           {data.datapoints.map((point, index) => (
             <li key={index}>

@@ -79,12 +79,14 @@ function TabNavigation({ selectedStage }) {
             {activeKey === tab.name && (
                 <div className="tab-content">
                 <Forms
+                  className = "forms"
                   datapoints={tab.datapoints}
                   tabName={tab.name}
                   saveFormData={saveFormData}
                   formData={formData[tab.name] || {}}
                 />
                 <Summary
+                className = "summary"
                   data={tab}
                   formData={formData[tab.name] || {}}
                 />
