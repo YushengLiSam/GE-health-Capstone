@@ -35,28 +35,28 @@ function TabNavigation({ selectedStage }) {
       }
     ]
   }]);
-  const fetchFormData = async () => {
-    try {
-      const response = await fetch(`http://127.0.0.1:5000/api/get_subcategories`, {
-        method: 'POST', // Adjust to POST if the server requires stage in the request body
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ stage: selectedStage }) // Send stage in the request body
-      });
-      const data = await response.json();
-      console.log(data)
-      setTabsData(data);
-      if (data.length > 0) setActiveKey(data[0].name);
-    } catch (error) {
-      console.error("Error fetching form data:", error);
-    }
-  };
-  useEffect(() => {
-    if (selectedStage) {
-      fetchFormData();
-    }
-  }, [selectedStage]);
+  // const fetchFormData = async () => {
+  //   try {
+  //     const response = await fetch(`http://127.0.0.1:5000/api/get_subcategories`, {
+  //       method: 'POST', // Adjust to POST if the server requires stage in the request body
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({ stage: selectedStage }) // Send stage in the request body
+  //     });
+  //     const data = await response.json();
+  //     console.log(data)
+  //     setTabsData(data);
+  //     if (data.length > 0) setActiveKey(data[0].name);
+  //   } catch (error) {
+  //     console.error("Error fetching form data:", error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   if (selectedStage) {
+  //     fetchFormData();
+  //   }
+  // }, [selectedStage]);
   
   console.log(selectedStage);
 
@@ -75,10 +75,10 @@ function TabNavigation({ selectedStage }) {
         onSelect={(k) => setActiveKey(k)} // Updates the active tab state
         className="horizontal-tabs"
       >
-        {tabsData.map((tab, index) => (
+        {tabsData.map((tab, index) => ( //className="tab-content"
           <Tab eventKey={tab.name} title={tab.name} key={index}>
             {activeKey === tab.name && (
-                <div className="tab-content">
+                <div className='tab-c'> 
                 <Forms
                   className = "forms"
                   datapoints={tab.datapoints}
