@@ -37,6 +37,16 @@
   }
   
 /* Tab Navigation Styling */
+
+.tab-navigation {
+  padding: 20px;
+  width: 100%;
+  height: 100%; /* Ensure it takes full height of the parent container */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
 .horizontal-tabs {
     display: flex;
     justify-content: space-between; /* Distribute tabs evenly across the row */
@@ -76,10 +86,39 @@
   
   /* Tab Content Styling */
   .tab-content {
-    padding: 15px;
-    border: 1px solid #dee2e6;
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    flex-grow: 1;
+    box-sizing: border-box;
+    flex-direction: row;
+  }
+
+  .summary {
+    flex: 2;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     background-color: #ffffff;
+    margin-left: auto;
+  }
+  
+  .summary h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+  
+  .summary ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .summary li {
+    margin-bottom: 5px;
+  }
+  
+  .summary li strong {
+    font-weight: bold;
   }
   
   /* Responsive Layout */
@@ -96,7 +135,12 @@
   
   /* Form Styling */
   form {
-    margin-top: 10px;
+    flex: 6;
+    width: 75%; /* Explicitly set width to 3/4 */
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
   }
   
   .form-group {

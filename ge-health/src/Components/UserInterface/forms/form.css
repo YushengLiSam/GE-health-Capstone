@@ -9,6 +9,8 @@
   }
   
   .input-group {
+    display: flex;
+  flex-direction: column;
     margin-bottom: 1.5rem;
   }
   
@@ -17,5 +19,13 @@
     outline: none;
     border-color: #80bdff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+
+  .form-button {
+    margin-right: 10px;
+  }
+  
+  .form-button:last-of-type {
+    margin-right: 0;
   }
   

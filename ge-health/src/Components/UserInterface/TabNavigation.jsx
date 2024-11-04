@@ -1,11 +1,11 @@
 import React, { useState,useEffect } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
-import FHRForm from './forms/FHRForm';
-import ContractionsForm from './forms/ContractionsForm';
-import PatientCareForm from './forms/PatientCareForm';
+import Forms from './forms/Forms';
+import Summary from './Summary';
 
 function TabNavigation({ selectedStage }) {
   const [activeKey, setActiveKey] = useState(''); // Controls the active tab
+  const [formData, setFormData] = useState({});
   const [tabsData, setTabsData] = useState([{
     "name": "Contractions",
     "datapoints": [
@@ -59,6 +59,14 @@ function TabNavigation({ selectedStage }) {
   }, [selectedStage]);
   
   console.log(selectedStage);
+
+  const saveFormData = (tabName, updatedData) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [tabName]: updatedData
+    }));
+  };
+
   return (
     <div className="tab-navigation">
       <Tabs
@@ -70,7 +78,20 @@ function TabNavigation({ selectedStage }) {
         {tabsData.map((tab, index) => (
           <Tab eventKey={tab.name} title={tab.name} key={index}>
             {activeKey === tab.name && (
-                <Forms datapoints={tab.datapoints} />
+                <div className="tab-content">
+                <Forms
+                  className = "forms"
+                  datapoints={tab.datapoints}
+                  tabName={tab.name}
+                  saveFormData={saveFormData}
+                  formData={formData[tab.name] || {}}
+                />
+                <Summary
+                className = "summary"
+                  data={tab}
+                  formData={formData[tab.name] || {}}
+                />
+              </div>
             )}
           </Tab>
         ))}
