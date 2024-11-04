@@ -186,7 +186,7 @@ function AnnotationBuilder() {
   const addDatapoint = (categoryIndex, subcategoryIndex) => {
     const updatedCategories = [...categories];
     updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints.push({
-      selectedDatapoint: '', type: '', listItems: []
+      selectedDatapoint: '', type: '', customDataType: '', listItems: []
     });
     setCategories(updatedCategories);
   };
@@ -222,11 +222,19 @@ function AnnotationBuilder() {
 
   const handleDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, value) => {
     const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = value || '';
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = value;
+    // Clear custom data type if a predefined option is selected
+    if (value !== 'Other') {
+      updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].customDataType = '';
+    }
     setCategories(updatedCategories);
   };
 
-
+  const handleCustomDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, customValue) => {
+    const updatedCategories = [...categories];
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].customDataType = customValue;
+    setCategories(updatedCategories);
+  };
 
   const handleMandatoryChange = (categoryIndex, subcategoryIndex, datapointIndex) => {
     const updatedCategories = [...categories];
@@ -344,8 +352,10 @@ function AnnotationBuilder() {
                       <EditableDropdown
                         options={dataTypeOptions}
                         value={datapoint.type}
+                        customValue={datapoint.customDataType}
                         onChange={(value) => handleDataTypeChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
-                        className={styles['data-type-dropdown']}
+                        onCustomChange={(customValue) => handleCustomDataTypeChange(categoryIndex, subcategoryIndex, datapointIndex, customValue)}
+                        placeholder="Select a data type"
                       />
                       <label className={styles.mandatoryLabel}>
                         <input

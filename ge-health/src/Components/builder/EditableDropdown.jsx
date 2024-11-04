@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styles from './EditableDropdown.module.css';
 
 function EditableDropdown({ options, value, customValue, onChange, onCustomChange, placeholder = "Select an option" }) {
@@ -7,13 +7,15 @@ function EditableDropdown({ options, value, customValue, onChange, onCustomChang
   const handleSelectChange = (e) => {
     const selectedValue = e.target.value;
     onChange(selectedValue);
-    if (selectedValue !== 'Other') {
+    if (selectedValue !== 'Other' && onCustomChange) {
       onCustomChange(''); // Clear custom input if not "Other"
     }
   };
 
   const handleCustomInputChange = (e) => {
-    onCustomChange(e.target.value);
+    if (onCustomChange) {
+      onCustomChange(e.target.value);
+    }
   };
 
   return (
@@ -25,7 +27,7 @@ function EditableDropdown({ options, value, customValue, onChange, onCustomChang
         ))}
         <option value="Other">Other</option>
       </select>
-      {isOtherSelected && (
+      {isOtherSelected && onCustomChange && (
         <input
           type="text"
           value={customValue}
