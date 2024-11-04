@@ -75,11 +75,36 @@
   }
   
   /* Tab Content Styling */
+
+
   .tab-content {
-    padding: 15px;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    background-color: #ffffff;
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+  }
+  
+  .summary {
+    flex: 1;
+    border-left: 1px solid #e0e0e0;
+    padding-left: 20px;
+  }
+  
+  .summary h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+  
+  .summary ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .summary li {
+    margin-bottom: 5px;
+  }
+  
+  .summary li strong {
+    font-weight: bold;
   }
   
   /* Responsive Layout */

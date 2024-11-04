@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Button } from 'react-bootstrap';
 import './form.css';
 
 
-function FHRForm({datapoints}) {
-    const [formData, setFormData] = useState({});
-  
-    const handleChange = (e) => {
-      const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-    };
-  
+function Forms({datapoints, tabName, saveFormData, formData}) {
+    const [localFormData, setLocalFormData] = useState(formData);
+    useEffect(() => {
+        setLocalFormData(formData);
+      }, [formData]);
+      const handleChange = (e, field) => {
+        setLocalFormData((prevData) => ({
+          ...prevData,
+          [field.name]: e.target.value
+        }));
+      };
+      const handleSave = () => {
+        saveFormData(tabName, localFormData);
+      };
     const handleSubmit = (e) => {
       e.preventDefault();
       console.log(formData); // Replace with API call or state management logic
@@ -25,7 +31,8 @@ function FHRForm({datapoints}) {
               <Form.Control
                 type="text"
                 name={field.name}
-                onChange={handleChange}
+                onChange={(e) => handleChange(e, field)}
+                value={localFormData[field.name] || ''}
                 required={field.isMandatory}
                 className="input-field"
               />
@@ -33,7 +40,8 @@ function FHRForm({datapoints}) {
               <Form.Control
                 as="select"
                 name={field.name}
-                onChange={handleChange}
+                onChange={(e) => handleChange(e, field)}
+                value={localFormData[field.name] || ''}
                 required={field.isMandatory}
                 className="input-field"
               >
@@ -45,11 +53,14 @@ function FHRForm({datapoints}) {
             ) : null}
           </Form.Group>
         ))}
-        <Button variant="primary" type="submit">
-          Submit
-        </Button>
+        <Button variant="primary" type="submit" className="form-button">
+        Submit
+      </Button>
+      <Button variant="secondary" onClick={handleSave} className="form-button">
+        Save
+      </Button>
       </Form>
     );
   }
   
-  export default FHRForm;
+  export default Forms;

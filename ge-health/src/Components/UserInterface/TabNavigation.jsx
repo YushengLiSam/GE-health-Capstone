@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Tabs, Tab } from 'react-bootstrap';
 import Forms from './forms/Forms';
+import Summary from './Summary';
 
 function TabNavigation({ selectedStage }) {
   const [activeKey, setActiveKey] = useState(''); // Controls the active tab
+  const [formData, setFormData] = useState({});
   const [tabsData, setTabsData] = useState([{
     "name": "Contractions",
     "datapoints": [
@@ -56,6 +58,14 @@ function TabNavigation({ selectedStage }) {
   // }, [selectedStage]);
   
   console.log(selectedStage);
+
+  const saveFormData = (tabName, updatedData) => {
+    setFormData((prevData) => ({
+      ...prevData,
+      [tabName]: updatedData
+    }));
+  };
+
   return (
     <div className="tab-navigation">
       <Tabs
@@ -67,7 +77,18 @@ function TabNavigation({ selectedStage }) {
         {tabsData.map((tab, index) => (
           <Tab eventKey={tab.name} title={tab.name} key={index}>
             {activeKey === tab.name && (
-                <Forms datapoints={tab.datapoints} />
+                <div className="tab-content">
+                <Forms
+                  datapoints={tab.datapoints}
+                  tabName={tab.name}
+                  saveFormData={saveFormData}
+                  formData={formData[tab.name] || {}}
+                />
+                <Summary
+                  data={tab}
+                  formData={formData[tab.name] || {}}
+                />
+              </div>
             )}
           </Tab>
         ))}
