@@ -9,10 +9,11 @@ import './style.css';
 function UserInterface() {
   const [patientData, setPatientData] = useState({});
   const [alerts, setAlerts] = useState([]);
+  const [selectedStage, setSelectedStage] = useState('Select Stage');
 
   const location = useLocation();
   const { patientName } = location.state || {};
-  console.log(patientName)
+  
 
   // Fetch patient data and monitor for alerts
   useEffect(() => {
@@ -29,12 +30,16 @@ function UserInterface() {
     }
   };
 
+  const handleStageSelect = (stage) => {
+    setSelectedStage(stage); // Update selected stage
+  };
+  
   return (
     <div className="container">
       <HeaderAndPatientInfo patient={patientData} patientName = {patientName}/>
-      <StageSelector />
+      <StageSelector onStageSelect={handleStageSelect}/>
       <AlertDisplay alerts={alerts} />
-      <TabNavigation />
+      <TabNavigation selectedStage={selectedStage}/>
     </div>
   );
 }

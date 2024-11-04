@@ -236,6 +236,7 @@ function AnnotationBuilder() {
     setCategories(updatedCategories);
   };
 
+
   const handleMandatoryChange = (categoryIndex, subcategoryIndex, datapointIndex) => {
     const updatedCategories = [...categories];
     updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].isMandatory = !updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].isMandatory;

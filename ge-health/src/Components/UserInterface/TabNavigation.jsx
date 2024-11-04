@@ -67,15 +67,13 @@ function TabNavigation({ selectedStage }) {
         onSelect={(k) => setActiveKey(k)} // Updates the active tab state
         className="horizontal-tabs"
       >
-        <Tab eventKey="fhr" title="FHR A" >
-          {activeKey === 'fhr' && <FHRForm />} {/* Render only when active */}
-        </Tab>
-        <Tab eventKey="contractions" title="Contractions" >
-          {activeKey === 'contractions' && <ContractionsForm />} {/* Render only when active */}
-        </Tab>
-        <Tab eventKey="patient-care" title="Patient Care" >
-          {activeKey === 'patient-care' && <PatientCareForm />} {/* Render only when active */}
-        </Tab>
+        {tabsData.map((tab, index) => (
+          <Tab eventKey={tab.name} title={tab.name} key={index}>
+            {activeKey === tab.name && (
+                <Forms datapoints={tab.datapoints} />
+            )}
+          </Tab>
+        ))}
       </Tabs>
     </div>
   );
