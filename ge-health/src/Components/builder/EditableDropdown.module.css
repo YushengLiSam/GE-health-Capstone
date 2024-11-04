@@ -1,0 +1,13 @@
+.editableDropdownContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .customInput {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
