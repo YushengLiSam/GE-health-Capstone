@@ -33,6 +33,7 @@ function AnnotationBuilder() {
 
   const dataTypeOptions = ['Float', 'String', 'List'];
 
+
   const handleImportData = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -198,22 +199,34 @@ function AnnotationBuilder() {
     setCategories(updatedCategories);
   };
 
-  const handleDatapointChange = (categoryIndex, subcategoryIndex, datapointIndex, event) => {
+  const handleDatapointChange = (categoryIndex, subcategoryIndex, datapointIndex, value) => {
     const updatedCategories = [...categories];
-    const selectedDatapoint = datapointOptions.find(option => option.name === event.target.value);
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex] = {
-      selectedDatapoint: selectedDatapoint.name,
-      type: selectedDatapoint.type,
-      listItems: selectedDatapoint.listItems || []
-    };
+    const selectedDatapoint = datapointOptions.find(option => option.name === value);
+
+    if (selectedDatapoint) {
+      updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex] = {
+        selectedDatapoint: selectedDatapoint.name,
+        type: selectedDatapoint.type,
+        listItems: selectedDatapoint.listItems || []
+      };
+    } else {
+      updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex] = {
+        selectedDatapoint: value, // if value is unmatched, just set the raw input value
+        type: '',
+        listItems: []
+      };
+    }
+
     setCategories(updatedCategories);
   };
 
-  const handleDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, event) => {
+  const handleDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, value) => {
     const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = event.target.value;
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = value || '';
     setCategories(updatedCategories);
   };
+
+
 
   const handleMandatoryChange = (categoryIndex, subcategoryIndex, datapointIndex) => {
     const updatedCategories = [...categories];
@@ -237,7 +250,8 @@ function AnnotationBuilder() {
     }));
 
     try {
-      const response = await fetch('PLACEHOLDER', {
+      console.log(formattedData);
+      const response = await fetch('http://127.0.0.1:5000/api/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -263,6 +277,7 @@ function AnnotationBuilder() {
     setCategories([]);
   };
 
+
   return (
     <div className={styles['annotation-builder']}>
       <div className={styles.header}>
@@ -287,17 +302,12 @@ function AnnotationBuilder() {
               <EditableDropdown
                 options={categoryOptions}
                 value={category.selectedCategory}
+                customValue={category.customCategory}
                 onChange={(value) => handleCategoryChange(categoryIndex, value)}
+                onCustomChange={(customValue) => handleCustomCategoryChange(categoryIndex, customValue)}
+                placeholder="Select a category"
               />
-              {category.selectedCategory === 'Other' && (
-                <input
-                  type="text"
-                  value={category.customCategory}
-                  onChange={(e) => handleCustomCategoryChange(categoryIndex, e.target.value)}
-                  placeholder="Enter custom category"
-                  className={styles.customInput}
-                />
-              )}
+
               <button onClick={() => addSubcategory(categoryIndex)} className={styles.subcategoryButton}>Add Subcategory</button>
               <button onClick={() => removeCategory(categoryIndex)} className={styles.categoryButton}>Remove Category</button>
             </div>
@@ -308,38 +318,29 @@ function AnnotationBuilder() {
                   <EditableDropdown
                     options={subcategoryOptions}
                     value={subcategory.selectedSubcategory}
+                    customValue={subcategory.customSubcategory}
                     onChange={(value) => handleSubcategoryChange(categoryIndex, subcategoryIndex, value)}
+                    onCustomChange={(customValue) => handleCustomSubcategoryChange(categoryIndex, subcategoryIndex, customValue)}
+                    placeholder="Select a subcategory"
                   />
-                  {subcategory.selectedSubcategory === 'Other' && (
-                    <input
-                      type="text"
-                      value={subcategory.customSubcategory}
-                      onChange={(e) => handleCustomSubcategoryChange(categoryIndex, subcategoryIndex, e.target.value)}
-                      placeholder="Enter custom subcategory"
-                      className={styles.customInput}
-                    />
-                  )}
                   <button onClick={() => addDatapoint(categoryIndex, subcategoryIndex)} className={styles.datapointButton}>Add Datapoint</button>
                   <button onClick={() => removeSubcategory(categoryIndex, subcategoryIndex)} className={styles.subcategoryButton}>Remove Subcategory</button>
                 </div>
 
                 {subcategory.datapoints.map((datapoint, datapointIndex) => (
                   <div key={datapointIndex} className={styles.datapoint}>
+
+
                     <div className={styles['datapoint-row']}>
                       <EditableDropdown
                         options={datapointOptions.map(dp => dp.name)}
                         value={datapoint.selectedDatapoint}
+                        customValue={datapoint.customDatapoint}
                         onChange={(value) => handleDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
+                        onCustomChange={(customValue) => handleCustomDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, customValue)}
+                        placeholder="Select a datapoint"
                       />
-                      {datapoint.selectedDatapoint === 'Other' && (
-                        <input
-                          type="text"
-                          value={datapoint.customDatapoint}
-                          onChange={(e) => handleCustomDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, e.target.value)}
-                          placeholder="Enter custom datapoint"
-                          className={styles.customInput}
-                        />
-                      )}
+
                       <EditableDropdown
                         options={dataTypeOptions}
                         value={datapoint.type}
@@ -355,6 +356,7 @@ function AnnotationBuilder() {
                         Mandatory
                       </label>
                     </div>
+
                     <button onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}>Remove</button>
                   </div>
 

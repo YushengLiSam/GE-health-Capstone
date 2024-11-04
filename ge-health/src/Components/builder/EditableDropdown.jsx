@@ -1,47 +1,38 @@
 import React, { useState } from 'react';
+import styles from './EditableDropdown.module.css';
 
-function EditableDropdown({ options, value, onChange }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
+function EditableDropdown({ options, value, customValue, onChange, onCustomChange, placeholder = "Select an option" }) {
+  const isOtherSelected = value === 'Other';
 
   const handleSelectChange = (e) => {
-    if (e.target.value === 'Other') {
-      setIsEditing(true);
-    } else {
-      setInputValue(e.target.value);
-      onChange(e.target.value);
-      setIsEditing(false);
+    const selectedValue = e.target.value;
+    onChange(selectedValue);
+    if (selectedValue !== 'Other') {
+      onCustomChange(''); // Clear custom input if not "Other"
     }
   };
 
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-    onChange(e.target.value);
-  };
-
-  const handleBlur = () => {
-    setIsEditing(false);
+  const handleCustomInputChange = (e) => {
+    onCustomChange(e.target.value);
   };
 
   return (
-    <div>
-      {isEditing ? (
+    <div className={styles.editableDropdownContainer}>
+      <select value={value} onChange={handleSelectChange}>
+        <option value="" disabled>{placeholder}</option>
+        {options.map((option, index) => (
+          <option key={index} value={option}>{option}</option>
+        ))}
+        <option value="Other">Other</option>
+      </select>
+      {isOtherSelected && (
         <input
           type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          onBlur={handleBlur}
+          value={customValue}
+          onChange={handleCustomInputChange}
           placeholder="Enter custom value"
-          autoFocus
+          className={styles.customInput}
         />
-      ) : (
-        <select value={inputValue} onChange={handleSelectChange}>
-          <option value="" disabled>Select an option</option>
-          {options.map((option, index) => (
-            <option key={index} value={option}>{option}</option>
-          ))}
-          <option value="Other">Other</option>
-        </select>
       )}
     </div>
   );
