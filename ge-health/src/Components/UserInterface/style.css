@@ -85,7 +85,7 @@
   }
   
   /* Tab Content Styling */
-  .tab-content {
+  .tab-c {
     display: flex;
     gap: 20px;
     width: 100%;
@@ -136,7 +136,6 @@
   /* Form Styling */
   form {
     flex: 6;
-    width: 75%; /* Explicitly set width to 3/4 */
     padding: 20px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
