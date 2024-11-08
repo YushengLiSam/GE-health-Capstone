@@ -16,20 +16,73 @@ db2 = mysql.connector.connect(
     password="",
     database="static_annotation"  # Static operators database
 )
+'''
 db3 = mysql.connector.connect(
     host="localhost",
     user="annotation_user",
     password="",
     database="static_categories"  # Static categories database
 )
+'''
 
 # Create Blueprint for routes
 api_routes = Blueprint('api_routes', __name__)
 
 # Define routes in the blueprint
+
+
 @api_routes.route('/')
 def index():
     return jsonify({"message": "API is working!"})
+
+
+HARDCODED_CATEGORIES = {
+    "Active Labor (5cm-8cm)": {
+        "subcategories": [
+            {
+                "name": "Vitals",
+                "datapoints": [
+                    {"name": "HR", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True},
+                    {"name": "Respirations", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True},
+                    {"name": "Blood Pressure", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True},
+                    {"name": "Pulse Ox", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True},
+                    {"name": "Temperature", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True}
+                ]
+            },
+            {
+                "name": "Pain Management",
+                "datapoints": [
+                    {"name": "Pain Level", "datatype": "List", "inputType": "Dropdown",
+                        "isMandatory": False, "listItems": ["Mild", "Moderate", "Severe"]}
+                ]
+            }
+        ]
+    },
+    "Pushing/Delivery": {
+        "subcategories": [
+            {
+                "name": "FHR",
+                "datapoints": [
+                    {"name": "FHR Reading", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True}
+                ]
+            },
+            {
+                "name": "Contractions",
+                "datapoints": [
+                    {"name": "Contraction Frequency", "datatype": "Numeric",
+                        "inputType": "Textbox", "isMandatory": True}
+                ]
+            }
+        ]
+    }
+}
+
 
 # -------------------------
 # POST /categories
@@ -39,45 +92,52 @@ def index():
 def add_categories():
     data = request.json
     cursor = db1.cursor()
-    # categories = data.get('categories', [])
     try:
         for category in data['categories']:
             # Insert category
             category_name = category['name'].strip()  # Remove any extra spaces
-            cursor.execute("SELECT id FROM categories WHERE name = %s", (category_name,))
-            results = cursor.fetchone()
+            cursor.execute(
+                "SELECT id FROM categories WHERE name = %s", (category_name,))
+            result = cursor.fetchone()
 
-            if results is not None:
-                category_id = results[0]
+            if result is not None:
+                category_id = result[0]
             else:
-                cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category_name,))
+                cursor.execute(
+                    "INSERT INTO categories (name) VALUES (%s)", (category_name,))
                 category_id = cursor.lastrowid  # Get the last inserted ID
 
-            for subcategory in category['subcategories']:
-                # Insert subcategory
-                subcategory_name = subcategory['name'].strip()
-                cursor.execute("INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
-                subcategory_id = cursor.lastrowid  # Get the last inserted ID
+                # Check if the category is in HARDCODED_CATEGORIES
+                if category_name in HARDCODED_CATEGORIES:
+                    # Get the hardcoded subcategories for this category
+                    hardcoded_subcategories = HARDCODED_CATEGORIES[category_name]['subcategories']
 
-                for datapoint in subcategory['datapoints']:
+                    # Add each subcategory
+                    for subcategory in hardcoded_subcategories:
+                        subcategory_name = subcategory['name']
+                        cursor.execute(
+                            "INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
+                        subcategory_id = cursor.lastrowid
 
-                    datapoint_name = datapoint['name'].lower()
-                    data_type = datapoint['datatype'].lower()
-                    is_mandatory = datapoint['isMandatory']
-
-                    cursor.execute(
-                        "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
-                        (subcategory_id, datapoint_name, data_type, is_mandatory)
-                    )
-                    datapoint_id = cursor.lastrowid
-
-                    # If the data type is List, save the list items
-                    if data_type == 'list':
-                        for item in datapoint['listItems']:
+                        # Add datapoints for each subcategory
+                        for datapoint in subcategory['datapoints']:
+                            datapoint_name = datapoint['name']
+                            data_type = datapoint['datatype'].lower()
+                            is_mandatory = datapoint['isMandatory']
                             cursor.execute(
-                                "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
-                                (datapoint_id, item)
+                                "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+                                (subcategory_id, datapoint_name,
+                                 data_type, is_mandatory)
                             )
+                            datapoint_id = cursor.lastrowid
+
+                            # If the data type is List, save the list items
+                            if data_type == 'list':
+                                for item in datapoint.get('listItems', []):
+                                    cursor.execute(
+                                        "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                                        (datapoint_id, item)
+                                    )
         # Commit all changes
         db1.commit()
         return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 200
@@ -86,130 +146,69 @@ def add_categories():
         db1.rollback()  # Rollback in case of error
         return jsonify({"error": str(e)}), 400
 
-# For fetching a specific category (provided through a JSON file with category name)
+# -------------------------
+# GET /categories
+# -------------------------
+# Fetch all category names and ids
 
-@api_routes.route('/get_category', methods=['POST'])
-def get_category():
-    data = request.json
-    category_name = data.get('name')
-    # If name is provided, fetch that specific category. Else, fetch all categories
 
-    cursor = db1.cursor(dictionary=True)
-
+@api_routes.route('/categories', methods=['GET'])
+def get_categories():
     try:
-        if category_name:
-            cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
-            category = cursor.fetchone()
+        cursor = db1.cursor(dictionary=True)
 
-            if category is None:
-                return jsonify({"error": "Category not found"}), 404
+        # Select only the name and id from Categories table
+        cursor.execute("SELECT id, name FROM Categories")
+        categories = cursor.fetchall()
 
-            # Fetch subcategories related to the category
-            cursor.execute(
-                "SELECT * FROM Subcategories WHERE category_id = %s", 
-                (category['id'],)
-            )
-            subcategories = cursor.fetchall()
-
-            # Fetch datapoints for each subcategory
-            for subcategory in subcategories:
-                subcategory_id = subcategory['id']
-                cursor.execute(
-                    "SELECT * FROM Datapoints WHERE subcategory_id = %s", 
-                    (subcategory_id,)
-                )
-                datapoints = cursor.fetchall()
-                subcategory['datapoints'] = datapoints
-
-                # If data type is List, fetch list items
-                for datapoint in datapoints:
-                    datapoint_id = datapoint['id']
-                    if datapoint['data_type'].lower() == 'list':
-                        cursor.execute(
-                            "SELECT * FROM ListValues WHERE datapoint_id = %s", 
-                            (datapoint_id,)
-                        )
-                        list_items = cursor.fetchall()
-                        datapoint['listItems'] = [item['value'] for item in list_items]
-
-            category['subcategories'] = subcategories
-            return jsonify(category), 200
-
-        else:
-            cursor.execute("SELECT * FROM Categories")
-            categories = cursor.fetchall()
-            for category in categories:
-                category_id = category['id']
-                cursor.execute(
-                    "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
-                subcategories = cursor.fetchall()
-                category['subcategories'] = [] # new
-
-                for subcategory in subcategories:
-                    subcategory_id = subcategory['id']
-                    cursor.execute(
-                        "SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
-                    datapoints = cursor.fetchall()
-                    subcategory['datapoints'] = []
-
-                    for datapoint in datapoints:
-                        datapoint_dict = {
-                            'name': datapoint['name'],
-                            'datatype': datapoint['data_type'],
-                            'isMandatory': datapoint['is_mandatory']
-                        }
-                        datapoint_id = datapoint['id']
-                        if datapoint['data_type'].lower() == 'list':
-                            cursor.execute(
-                                "SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
-                            list_items = cursor.fetchall()
-                            datapoint['listItems'] = [item['value']
-                                                  for item in list_items]
-                        subcategory['datapoints'].append(datapoint_dict)
-                category['subcategories'].append({
-                        'name': subcategory['name'],  # Include the subcategory name
-                        'datapoints': subcategory['datapoints']
-                    })
-
-            return jsonify({"categories": categories}), 200
+        # Return the category id and name only
+        return jsonify({"categories": categories}), 200
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500        
+        return jsonify({"error": str(e)}), 500
+
 
 # -----------------------
 # DELETE /categories
 # -----------------------
-
 @api_routes.route('/categories', methods=['DELETE'])
 def delete_category():
     data = request.json
-    category_name = data.get('name')
-    
-    if not category_name:
-        return jsonify({"error": "Category name is required"}), 202
+    category_id = data.get('id')
+
+    if not category_id:
+        return jsonify({"error": "Category ID is required"}), 400
 
     try:
         cursor = db1.cursor(dictionary=True)
-        # First, delete the associated datapoints
-        cursor.execute("DROP TEMPORARY TABLE IF EXISTS tmp_ids")
-        cursor.execute("CREATE TEMPORARY TABLE tmp_ids AS SELECT id FROM Categories WHERE id = (SELECT id FROM Categories WHERE name = %s)", (category_name,))
 
-        cursor.execute("DELETE FROM Categories WHERE id in (SELECT id FROM tmp_ids)")
+        # Delete the specified category using the ID
+        cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
+
+        # Check if there are no more categories left
+        cursor.execute("SELECT COUNT(*) AS category_count FROM Categories")
+        result = cursor.fetchone()
+        if result['category_count'] == 0:
+            # Reset the AUTO_INCREMENT (id) value to 1
+            cursor.execute("ALTER TABLE Categories AUTO_INCREMENT = 1")
 
         db1.commit()
 
-        return jsonify({"message": "Category and its related data deleted successfully!"}), 200
+        # Return the remaining categories by calling the existing get_categories method
+        return get_categories()
 
     except Exception as e:
-        db1.rollback()
+        db1.rollback()  # Rollback in case of error
         return jsonify({"error": f"Database error: {str(e)}"}), 600
+    finally:
+        cursor.close()
 
 
 # -------------------------
 # GET /categories
 # -------------------------
 # This returns all the categories in the database
-@api_routes.route('/categories', methods=['GET'])
+@api_routes.route('/categories_details', methods=['GET'])
 def get_categories_with_details():
     try:
         cursor = db1.cursor(dictionary=True)
@@ -220,7 +219,7 @@ def get_categories_with_details():
             cursor.execute(
                 "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
             subcategories = cursor.fetchall()
-            category['subcategories'] = [] # new
+            category['subcategories'] = []  # new
 
             for subcategory in subcategories:
                 subcategory_id = subcategory['id']
@@ -244,9 +243,9 @@ def get_categories_with_details():
                                                   for item in list_items]
                     subcategory['datapoints'].append(datapoint_dict)
             category['subcategories'].append({
-                    'name': subcategory['name'],  # Include the subcategory name
-                    'datapoints': subcategory['datapoints']
-                })
+                'name': subcategory['name'],  # Include the subcategory name
+                'datapoints': subcategory['datapoints']
+            })
 
         return jsonify({"categories": categories}), 200
     except Exception as e:
@@ -264,27 +263,31 @@ def add_subcategories():
     # categories = data.get('categories', [])
     try:
         category_name = data['category']
-        cursor.execute("SELECT id FROM categories WHERE name = %s", (category_name,))
+        cursor.execute(
+            "SELECT id FROM categories WHERE name = %s", (category_name,))
         result = cursor.fetchone()
         if result is not None:
             category_id = result[0]
 
         else:
-            cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category_name,))
+            cursor.execute(
+                "INSERT INTO categories (name) VALUES (%s)", (category_name,))
             category_id = cursor.lastrowid  # Get the last inserted ID
 
         for subcategory in data['subcategory']:
-            subcategory_name = subcategory['name'].strip()  # Remove any extra spaces
+            # Remove any extra spaces
+            subcategory_name = subcategory['name'].strip()
             print(subcategory_name)
-            print(category_id) # all good
-            cursor.execute("SELECT id FROM subcategories WHERE category_id = %s AND name = %s", (category_id, subcategory_name))
+            print(category_id)  # all good
+            cursor.execute(
+                "SELECT id FROM subcategories WHERE category_id = %s AND name = %s", (category_id, subcategory_name))
             result = cursor.fetchone()
             if result is not None:
                 subcategory_id = result[0]
             else:
-                cursor.execute("INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
+                cursor.execute(
+                    "INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
                 subcategory_id = cursor.lastrowid
-
 
             for datapoint in subcategory['datapoints']:
 
@@ -292,14 +295,15 @@ def add_subcategories():
                 data_type = datapoint['datatype'].lower()
                 is_mandatory = datapoint['isMandatory']
 
-                cursor.execute("INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",(subcategory_id, datapoint_name, data_type, is_mandatory)
-                    )
+                cursor.execute("INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)", (subcategory_id, datapoint_name, data_type, is_mandatory)
+                               )
                 datapoint_id = cursor.lastrowid
 
-                    # If the data type is List, save the list items
+                # If the data type is List, save the list items
                 if data_type == 'list':
                     for item in datapoint['listItems']:
-                        cursor.execute("INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",(datapoint_id, item))
+                        cursor.execute(
+                            "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)", (datapoint_id, item))
         # Commit all changes
         db1.commit()
         return jsonify({"message": "Subcategories, and datapoints added successfully."}), 200
@@ -313,28 +317,32 @@ def add_subcategories():
 # ------------------------
 # Return the subcategory with the subcategory_name, provided through a JSON File with the contents:"category_name":"<category_name>" "subcategory_name": "<subcategory_name>"
 
+
 @api_routes.route('/get_subcategories', methods=['POST'])
 def get_subcategories():
     data = request.json
     try:
         category_name = data.get('category_name')
         cursor = db1.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
+        cursor.execute(
+            "SELECT * FROM Categories WHERE name = %s", (category_name,))
         category = cursor.fetchone()
         if category is None:
             return jsonify({"error": "Category not found"}), 404
-        
-        cursor.execute("SELECT id FROM categories WHERE name = %s", (category_name,))
+
+        cursor.execute(
+            "SELECT id FROM categories WHERE name = %s", (category_name,))
         category_id = cursor.fetchone()
         if category_id:
             category_id = category_id['id']
         else:
             return jsonify({"error": "Category not found"}), 404
         subcategory_name = data.get('subcategory_name')
-        cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s", (category_id, subcategory_name))
+        cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s",
+                       (category_id, subcategory_name))
         subcategories = cursor.fetchall()
-        
-            # Fetch datapoints for each subcategory
+
+        # Fetch datapoints for each subcategory
         for subcategory in subcategories:
             subcategory_id = subcategory['id']
             cursor.execute(
@@ -353,7 +361,8 @@ def get_subcategories():
                         (datapoint_id,)
                     )
                     list_items = cursor.fetchall()
-                    datapoint['listItems'] = [item['value'] for item in list_items]
+                    datapoint['listItems'] = [item['value']
+                                              for item in list_items]
 
         return jsonify(subcategory), 200
 
@@ -365,18 +374,21 @@ def get_subcategories():
 # -------------------------
 # Deletes subcategory with JSON data in same format as get_subcategory
 
+
 @api_routes.route('/subcategories', methods=['DELETE'])
 def delete_subcategories():
     data = request.json
     try:
         category_name = data.get('category_name')
         cursor = db1.cursor(dictionary=True)
-        cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
+        cursor.execute(
+            "SELECT * FROM Categories WHERE name = %s", (category_name,))
         category = cursor.fetchone()
         if category is None:
             return jsonify({"error": "Category not found"}), 404
 
-        cursor.execute("SELECT id FROM categories WHERE name = %s", (category_name,))
+        cursor.execute(
+            "SELECT id FROM categories WHERE name = %s", (category_name,))
         category_id = cursor.fetchone()
         if category_id:
             print(category_id)
@@ -386,12 +398,14 @@ def delete_subcategories():
             return jsonify({"error": "Category not found"}), 404
         print(category_name)
         subcategory_name = data.get('subcategory_name')
-        cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s", (category_id, subcategory_name))
+        cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s",
+                       (category_id, subcategory_name))
         subcategories = cursor.fetchall()
-            # Fetch datapoints for each subcategory
+        # Fetch datapoints for each subcategory
         for subcategory in subcategories:
             subcategory_id = subcategory['id']
-            cursor.execute("DELETE FROM subcategories WHERE id = %s AND category_id = %s", (subcategory_id, category_id))
+            cursor.execute(
+                "DELETE FROM subcategories WHERE id = %s AND category_id = %s", (subcategory_id, category_id))
         db1.commit()
 
         return jsonify({"message": "Category and its related data deleted successfully!"}), 200
@@ -404,6 +418,8 @@ def delete_subcategories():
 # GET /static_categories
 # ------------------------
 # TODO: This method is not finished yet
+
+
 @api_routes.route('/static_categories', methods=['GET'])
 def get_static_categories_with_details():
     try:
@@ -415,7 +431,7 @@ def get_static_categories_with_details():
             cursor.execute(
                 "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
             subcategories = cursor.fetchall()
-            category['subcategories'] = [] # new
+            category['subcategories'] = []  # new
 
             for subcategory in subcategories:
                 subcategory_id = subcategory['id']
@@ -439,9 +455,9 @@ def get_static_categories_with_details():
                                                   for item in list_items]
                     subcategory['datapoints'].append(datapoint_dict)
             category['subcategories'].append({
-                    'name': subcategory['name'],  # Include the subcategory name
-                    'datapoints': subcategory['datapoints']
-                })
+                'name': subcategory['name'],  # Include the subcategory name
+                'datapoints': subcategory['datapoints']
+            })
 
         return jsonify({"categories": categories}), 200
     except Exception as e:
@@ -450,6 +466,7 @@ def get_static_categories_with_details():
 # -------------------------
 # GET /operands
 # -------------------------
+
 
 @api_routes.route('/operands', methods=['GET'])
 def get_operands():
