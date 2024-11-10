@@ -39,7 +39,6 @@
 /* Tab Navigation Styling */
 
 .tab-navigation {
-  padding: 20px;
   width: 100%;
   height: 100%; /* Ensure it takes full height of the parent container */
   display: flex;
@@ -136,7 +135,6 @@
   /* Form Styling */
   form {
     flex: 6;
-    width: 75%; /* Explicitly set width to 3/4 */
     padding: 20px;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
