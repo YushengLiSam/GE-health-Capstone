@@ -1,31 +1,18 @@
 from flask import Blueprint, jsonify, request
 import mysql.connector
 import json
+import os
 
 
 # Database connections
 db1 = mysql.connector.connect(
-   host="localhost",
-   user="annotation_user",
-   password="",
-   database="annotations"  # Annotation Builder database
+    host=os.getenv("MYSQL_HOST", "mysql"),  # Use "mysql" instead of "localhost" for Docker
+    user=os.getenv("MYSQL_USER", "annotation_user"),
+    password=os.getenv("MYSQL_PASSWORD", "password"),
+    database=os.getenv("MYSQL_DATABASE", "annotations")  # Database name
 )
 
 
-db2 = mysql.connector.connect(
-   host="localhost",
-   user="annotation_user",
-   password="",
-   database="static_annotation"  # Static operators database
-)
-'''
-db3 = mysql.connector.connect(
-   host="localhost",
-   user="annotation_user",
-   password="",
-   database="static_categories"  # Static categories database
-)
-'''
 
 
 # Create Blueprint for routes
@@ -514,15 +501,15 @@ def get_static_categories_with_details():
 # -------------------------
 
 
-@api_routes.route('/operands', methods=['GET'])
-def get_operands():
-   try:
-       cursor = db2.cursor(dictionary=True)
-       cursor.execute("SELECT * FROM Symbols")
-       symbols = cursor.fetchall()
-       return jsonify({"symbols": symbols}), 200
-   except Exception as e:
-       return jsonify({"error": str(e)}), 606
+# @api_routes.route('/operands', methods=['GET'])
+# def get_operands():
+#    try:
+#        cursor = db2.cursor(dictionary=True)
+#        cursor.execute("SELECT * FROM Symbols")
+#        symbols = cursor.fetchall()
+#        return jsonify({"symbols": symbols}), 200
+#    except Exception as e:
+#        return jsonify({"error": str(e)}), 606
 
 
 
