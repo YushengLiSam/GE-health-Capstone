@@ -8,10 +8,18 @@ function Sidebar() {
     <div className="sidebar">
       <h3>Labor & Delivery</h3>
       <nav>
-        <NavLink to="/rule-builder" activeClassName="active">Rule Builder</NavLink>
-        <NavLink to="/annotation-builder" activeClassName="active">Annotation Builder</NavLink>
-        <NavLink to="/users-roles" activeClassName="active">Users & Roles</NavLink>
-        <NavLink to="/patient-info" activeClassName="active">Patient Information</NavLink>
+        <NavLink to="/admin/rule-builder" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Rule Builder
+        </NavLink>
+        <NavLink to="/admin/annotation-builder" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Annotation Builder
+        </NavLink>
+        <NavLink to="/admin/users-roles" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Users & Roles
+        </NavLink>
+        <NavLink to="/admin/patient-info" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Patient Information
+        </NavLink>
       </nav>
     </div>
   );

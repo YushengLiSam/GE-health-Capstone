@@ -98,10 +98,10 @@ const PatientList = () => {
   }, []);
 
   const navigateToDetail = (id) => {
-    navigate(`/patient/${id}`);
+    navigate(`/admin/patient/${id}`);
   };
   const navigateToAddPatient = () => {
-    navigate('/add-patient');
+    navigate('/admin/add-patient');
   };
 
   return (
