@@ -3,7 +3,6 @@ The Annotation Builder is a tool to configure categories, subcategories, and dat
 •	Categories (e.g., FHR Contractions)
 •	Subcategories (e.g., Fetal Heart Rate, Uterine Activity)
 •	Datapoints (e.g., FHR Baseline, Contractions Intensity)
-•	ListValues (Mild, moderate, Strong)
 Key properties:
 •	Categories are top-level items and can be rearranged.
 •	Subcategories are linked to categories.
