@@ -3,7 +3,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5000:5000"
+      - "5001:5000"
     networks:
       - app-network
     environment:
@@ -26,7 +26,7 @@ services:
   mysql:
     image: mysql:8.0
     environment:
-      MYSQL_ROOT_PASSWORD: 
+      MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: annotations
       MYSQL_USER: annotation_user
       MYSQL_PASSWORD: 
