@@ -13,28 +13,23 @@ import Signup from './Components/Auth/Signup';
 import './App.css';
 
 function App() {
-  // State to check if the user is logged in
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // Check login status from localStorage on component mount
   useEffect(() => {
     const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
     setIsLoggedIn(loggedInStatus);
   }, []);
 
-  // Function to handle login (set `isLoggedIn` to true and save to localStorage)
   const handleLogin = () => {
     setIsLoggedIn(true);
     localStorage.setItem('isLoggedIn', 'true');
   };
 
-  // Function to handle logout (set `isLoggedIn` to false and remove from localStorage)
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem('isLoggedIn');
   };
 
-  // Admin Panel Layout Component
   const AdminPanel = () => (
     <div className="Config">
       <TopBar onLogout={handleLogout} />
@@ -54,9 +49,19 @@ function App() {
     </div>
   );
 
+  console.log(localStorage.getItem('isLoggedIn'));
+  // useEffect(() => {
+  //   const loggedInStatus = localStorage.getItem('isLoggedIn');
+  //   console.log("Initial loggedInStatus from localStorage:", loggedInStatus);
+  //   setIsLoggedIn(loggedInStatus === 'true');
+  // }, []);  
+
   return (
     <Router>
       <Routes>
+        {/* Default Route */}
+        <Route path="/" element={isLoggedIn ? <Navigate to="/admin" /> : <Navigate to="/login" />} />
+
         {/* Authentication Routes */}
         <Route path="/login" element={isLoggedIn ? <Navigate to="/admin" /> : <Login onLogin={handleLogin} />} />
         <Route path="/signup" element={<Signup />} />
@@ -64,7 +69,7 @@ function App() {
         {/* Protected Admin Routes */}
         <Route path="/admin/*" element={isLoggedIn ? <AdminPanel /> : <Navigate to="/login" />} />
 
-        {/* Redirect any unknown routes to login or admin based on login status */}
+        {/* Wildcard Route for Undefined Paths */}
         <Route path="*" element={<Navigate to={isLoggedIn ? "/admin" : "/login"} />} />
       </Routes>
     </Router>
