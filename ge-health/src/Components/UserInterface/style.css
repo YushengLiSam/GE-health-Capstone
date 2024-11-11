@@ -39,7 +39,6 @@
 /* Tab Navigation Styling */
 
 .tab-navigation {
-  padding: 20px;
   width: 100%;
   height: 100%; /* Ensure it takes full height of the parent container */
   display: flex;

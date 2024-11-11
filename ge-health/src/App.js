@@ -39,6 +39,7 @@ import AnnotationBuilder from './Components/builder/AnnotationBuilder';
 import UsersRoles from './Components/builder/UsersRoles';
 import PatientInformation from './Components/PatientInformation';
 import UserInterface from './Components/UserInterface/UIStructure'
+import PatientList from './Components/PatientList';
 import './App.css';
 
 function App() {
@@ -54,8 +55,9 @@ function App() {
             <Route path="/rule-builder" element={<RuleBuilder />} />
             <Route path="/annotation-builder" element={<AnnotationBuilder />} />
             <Route path="/users-roles" element={<UsersRoles />} />
-            <Route path="/patient-info" element={<PatientInformation />} />
-            <Route path="/ui" element={<UserInterface />} />
+            <Route path="/patient-info" element={<PatientList />} />
+            <Route path="/add-patient" element= {<PatientInformation/>}/>
+            <Route path="/patient/:id" element={<UserInterface />} />
           </Routes>
         </div>
       </div>

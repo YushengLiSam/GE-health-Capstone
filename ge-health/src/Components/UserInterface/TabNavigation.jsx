@@ -78,7 +78,7 @@ function TabNavigation({ selectedStage }) {
         {tabsData.map((tab, index) => ( //className="tab-content"
           <Tab eventKey={tab.name} title={tab.name} key={index}>
             {activeKey === tab.name && (
-                <div className='tab-c'> 
+                <div className="tab-c">
                 <Forms
                   className = "forms"
                   datapoints={tab.datapoints}
