@@ -36,7 +36,7 @@ const PatientInformation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(patientData);
-    navigate('/ui', { state: { patientName: patientData.name } });
+    navigate('/admin/ui', { state: { patientName: patientData.name } });
     // // API call to store the patient info
     // try {
     //   const response = await fetch('https://your-api-url.com/patients', {
