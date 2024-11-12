@@ -1,0 +1,54 @@
+version: '3'
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: annotations
+      MYSQL_USER: annotation_user
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backend/annotations_structure.sql:/docker-entrypoint-initdb.d/annotations_structure.sql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -u root --password=root_password || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    ports:
+      - "5002:5000"
+    networks:
+      - app-network
+    environment:
+      - MYSQL_HOST=mysql
+      - MYSQL_DATABASE=annotations
+      - MYSQL_USER=annotation_user
+      - MYSQL_PASSWORD=password
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build: ./ge-health
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000
+
+  
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mysql-data:

@@ -1,36 +1,31 @@
 from flask import Blueprint, jsonify, request
 import mysql.connector
 import json
+import os
+from flask_cors import CORS
 
 
 # Database connections
 db1 = mysql.connector.connect(
-   host="localhost",
-   user="annotation_user",
-   password="",
-   database="annotations"  # Annotation Builder database
+    host=os.getenv("MYSQL_HOST", "mysql"),  # Use "mysql" instead of "localhost" for Docker
+    user=os.getenv("MYSQL_USER", "annotation_user"),
+    password=os.getenv("MYSQL_PASSWORD", "password"),
+    database=os.getenv("MYSQL_DATABASE", "annotations")  # Database name
 )
 
+# db1 = mysql.connector.connect(
+#    host="localhost",
+#    user="annotation_user",
+#    password="password",
+#    database="annotations"  # Annotation Builder database
+# )
 
-db2 = mysql.connector.connect(
-   host="localhost",
-   user="annotation_user",
-   password="",
-   database="static_annotation"  # Static operators database
-)
-'''
-db3 = mysql.connector.connect(
-   host="localhost",
-   user="annotation_user",
-   password="",
-   database="static_categories"  # Static categories database
-)
-'''
+
 
 
 # Create Blueprint for routes
 api_routes = Blueprint('api_routes', __name__)
-
+CORS(api_routes)
 
 # Define routes in the blueprint
 
@@ -103,7 +98,7 @@ def add_categories():
            # Insert category
            category_name = category['name'].strip()  # Remove any extra spaces
            cursor.execute(
-               "SELECT id FROM categories WHERE name = %s", (category_name,))
+               "SELECT id FROM Categories WHERE name = %s", (category_name,))
            result = cursor.fetchone()
 
 
@@ -111,7 +106,7 @@ def add_categories():
                category_id = result[0]
            else:
                cursor.execute(
-                   "INSERT INTO categories (name) VALUES (%s)", (category_name,))
+                   "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
                category_id = cursor.lastrowid  # Get the last inserted ID
 
 
@@ -125,7 +120,7 @@ def add_categories():
                    for subcategory in hardcoded_subcategories:
                        subcategory_name = subcategory['name']
                        cursor.execute(
-                           "INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
+                           "INSERT INTO Subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
                        subcategory_id = cursor.lastrowid
 
 
@@ -514,15 +509,15 @@ def get_static_categories_with_details():
 # -------------------------
 
 
-@api_routes.route('/operands', methods=['GET'])
-def get_operands():
-   try:
-       cursor = db2.cursor(dictionary=True)
-       cursor.execute("SELECT * FROM Symbols")
-       symbols = cursor.fetchall()
-       return jsonify({"symbols": symbols}), 200
-   except Exception as e:
-       return jsonify({"error": str(e)}), 606
+# @api_routes.route('/operands', methods=['GET'])
+# def get_operands():
+#    try:
+#        cursor = db2.cursor(dictionary=True)
+#        cursor.execute("SELECT * FROM Symbols")
+#        symbols = cursor.fetchall()
+#        return jsonify({"symbols": symbols}), 200
+#    except Exception as e:
+#        return jsonify({"error": str(e)}), 606
 
 
 
