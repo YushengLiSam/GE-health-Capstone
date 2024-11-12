@@ -23,7 +23,7 @@ services:
   backend:
     build: ./backend
     ports:
-      - "5001:5000"
+      - "5002:5000"
     networks:
       - app-network
     environment:

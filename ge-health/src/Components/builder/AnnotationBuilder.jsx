@@ -260,7 +260,7 @@ function AnnotationBuilder() {
 
     try {
       console.log(formattedData);
-      const response = await fetch('http://127.0.0.1:5000/api/categories', {
+      const response = await fetch('http://127.0.0.1:5002/api/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
