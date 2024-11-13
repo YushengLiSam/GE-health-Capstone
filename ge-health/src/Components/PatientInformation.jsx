@@ -8,7 +8,7 @@ const PatientInformation = () => {
     name: '',
     age: '',
     dob: '',
-    fetalCount: '2', // default value for fetal count
+    fetalCount: '1', // default value for fetal count
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
