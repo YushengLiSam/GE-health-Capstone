@@ -20,8 +20,13 @@ db1 = mysql.connector.connect(
 #    database="annotations"  # Annotation Builder database
 # )
 
-
-
+# database that stores username and password for login page. Currently working on endpoints.
+login_db = mysql.connector.connect(
+    host=os.getenv("MYSQL_HOST", "mysql"),  # Use "mysql" instead of "localhost" for Docker
+    user=os.getenv("MYSQL_USER", "annotation_user"),
+    password=os.getenv("MYSQL_PASSWORD", "password"),
+    database=os.getenv("MYSQL_DATABASE", "login_db")  # Database name
+)
 
 # Create Blueprint for routes
 api_routes = Blueprint('api_routes', __name__)
