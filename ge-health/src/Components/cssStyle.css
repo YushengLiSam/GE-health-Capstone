@@ -1,0 +1,38 @@
+.patient-grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    padding: 20px;
+  }
+  
+  .patient-card {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  .add-patient-button {
+    background-color: #4CAF50; /* Green background */
+    color: white; /* White text */
+    padding: 10px 20px; /* Padding around the text */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    font-size: 16px; /* Font size */
+    margin: 20px 0; /* Space above and below */
+    display: inline-block;
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transition */
+  }
+  
+  .add-patient-button:hover {
+    background-color: #45a049; /* Slightly darker green on hover */
+    transform: scale(1.05); /* Slight scaling effect on hover */
+  }
+  
+  .add-patient-button:active {
+    background-color: #3e8e41; /* Even darker green when clicked */
+    transform: scale(1); /* Return to original size when clicked */
+  }
+  

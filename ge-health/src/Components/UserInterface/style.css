@@ -37,6 +37,15 @@
   }
   
 /* Tab Navigation Styling */
+
+.tab-navigation {
+  width: 100%;
+  height: 100%; /* Ensure it takes full height of the parent container */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
 .horizontal-tabs {
     display: flex;
     justify-content: space-between; /* Distribute tabs evenly across the row */
@@ -75,11 +84,40 @@
   }
   
   /* Tab Content Styling */
-  .tab-content {
-    padding: 15px;
-    border: 1px solid #dee2e6;
+  .tab-c {
+    display: flex;
+    gap: 20px;
+    width: 100%;
+    flex-grow: 1;
+    box-sizing: border-box;
+    flex-direction: row;
+  }
+
+  .summary {
+    flex: 2;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     background-color: #ffffff;
+    margin-left: auto;
+  }
+  
+  .summary h3 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+  }
+  
+  .summary ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .summary li {
+    margin-bottom: 5px;
+  }
+  
+  .summary li strong {
+    font-weight: bold;
   }
   
   /* Responsive Layout */
@@ -96,7 +134,11 @@
   
   /* Form Styling */
   form {
-    margin-top: 10px;
+    flex: 6;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
   }
   
   .form-group {
@@ -118,6 +160,20 @@
     border-radius: 8px;
     padding: 10px 20px;
     font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .chart-container {
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+  
+  .chart-container h3 {
+    margin-bottom: 10px;
     font-weight: bold;
   }
   
