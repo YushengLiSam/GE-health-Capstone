@@ -17,4 +17,10 @@
 |          |                      |                |                  for subcategories          |
 | GET      | /api/operands        | 200, 606       | return static list of operands              |
 |          |                      |                |                                             |
+| POST     | /api/login           | 400, 200,      | login a user. json input: "username:<usernam| 
+|          |                      |      500       |                  e, "password":<password>   |
+| POST     | /api/get_user        | 400, 500, 200  | get current user_id.                        |
+|          |                      |                | json input: same as above                   |
+| POST     | /api/signin          | 400, 500       | add a new user (sign-in)                    |
+|          |                      |                | json input: same as above                   |
 ------------------------------------------------------------------------------------------------- 
