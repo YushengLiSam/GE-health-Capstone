@@ -587,16 +587,6 @@ def get_curr_user():
     except Exception as e:
         return jsonify({"error":str(e)}), 500
 
-# -------------------------
-# GET /login
-# returns the user_id when requested
-# -------------------------
-@api_routes.route('/login', methods=['GET'])
-def get_user_id():
-    try:
-        cursor = login_db.cursor()
-        cursor.execute("SELECT user_id FROM user_login
-
 
 # -------------------------
 # GET /operands
