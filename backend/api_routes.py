@@ -20,8 +20,14 @@ db1 = mysql.connector.connect(
 #    database="annotations"  # Annotation Builder database
 # )
 
-
-
+# database that stores username and password for login page. Currently working on endpoints.
+# used in /login routes
+login_db = mysql.connector.connect(
+    host=os.getenv("MYSQL_HOST", "mysql"),  # Use "mysql" instead of "localhost" for Docker
+    user=os.getenv("MYSQL_USER", "annotation_user"),
+    password=os.getenv("MYSQL_PASSWORD", "password"),
+    database=os.getenv("MYSQL_DATABASE", "login_db")  # Database name
+)
 
 # Create Blueprint for routes
 api_routes = Blueprint('api_routes', __name__)
@@ -502,6 +508,84 @@ def get_static_categories_with_details():
        return jsonify({"categories": categories}), 200
    except Exception as e:
        return jsonify({"error": str(e)}), 605
+
+# -------------------------
+# POST /signin
+# data is given in json: { username: <username>, password: <password> }
+# -------------------------
+@api_routes.route('/signin', methods=['POST'])
+def add_user():
+    data = request.json
+    cursor = login_db.cursor()
+    try:
+        username = data['username']
+        password = data['password']
+
+        if not username:
+            return jsonify({"Error": "Username is required"}), 400
+
+        if not password:
+            return jsonify({"Error": "Password is required"}), 400
+
+        cursor.execute("SELECT user_id FROM user_login WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        if user:
+            return jsonify({"Error": "Username already exists"}), 400
+
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        cursor.execute("INSERT INTO user_login (username, password) VALUES (%s)", (username,hashed_password))
+        login_db.commit()
+
+     except Exception as e:
+         return jsonify({"error":str(e)}), 500
+        
+# -------------------------
+# POST /login
+# data is given in same json format as above. Will check if login is successful (if user/password is in db)
+# ------------------------
+@api_routes.route('/login', methods=['POST'])
+def login_user():
+    data = request.json
+    cursor = login_db.cursor()
+    try: 
+        username = data['username']
+        password = data['password']
+        if not username or not password:
+            return jsonify({"Error": "Username is required"}), 400
+        cursor.execute("SELECT password FROM user_login WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        if not user:
+            return jsonify({"error":"Invalid username or password"}), 400
+
+        stored_password_hash = user[0]
+        if not bcrypt.check_password_hash(stored_password_hash, password):
+            return jsonify({"error": "Invalid username or password"}), 400
+
+        return jsonify({"message": "Login successful", "username": username}), 200
+    except Exception as e:
+        return jsonify({"error":str(e)}), 500
+
+# ------------------------
+# POST /get_user
+# Returns the user_id of the currently logged-in user (if needed for Annotation connection)
+# data is given in json: {username: <username>}
+# ------------------------
+@api_routes.route('/get_user', methods=['POST'])
+def get_curr_user():
+    data = request.json
+    cursor = login_db.cursor()
+    try:
+        username = data['username']
+        if not username:
+            return jsonify({"Error": "Username is required"}), 400
+        cursor.execute("SELECT user_id FROM user_login WHERE username = %s", (username,))
+        user = cursor.fetchone()
+        if not user:
+            return jsonify({"error":"Invalid username"}), 400
+
+        return jsonify({"message":"user_id returned successfully"})
+    except Exception as e:
+        return jsonify({"error":str(e)}), 500
 
 
 # -------------------------
