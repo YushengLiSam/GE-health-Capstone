@@ -1,0 +1,90 @@
+1. Annotation Builder Overview:
+The Annotation Builder is a tool to configure categories, subcategories, and datapoints. These elements are hierarchical:
+• Categories (e.g., FHR Contractions)
+• Subcategories (e.g., Fetal Heart Rate, Uterine Activity)
+• Datapoints (e.g., FHR Baseline, Contractions Intensity)
+• ListValues (Mild, moderate, Strong)
+
+Key properties:
+• Categories are top-level items and can be rearranged.
+• Subcategories are linked to categories.
+• Datapoints are linked to subcategories and can have different data types (e.g., numeric, list, boolean).
+
+Example Structure:
+Pre-delivery (Category)
+│
+├── Contractions (Subcategory)
+│   ├── Contraction frequency (Datapoint: Numeric)
+│   └── Quality (Datapoint: Dropdown: Mild, Moderate, Strong)
+│
+└── Patient Care (Subcategory)
+    └── Name (Datapoint: Textbox)
+
+In Delivery (Category)
+└── (No subcategories or datapoints added yet)
+
+File Structure in /annotation_builder_backend/:
+│
+├── app.py              # Main entry point for the Flask app
+├── routes.py           # API routes for Categories, Subcategories, Datapoints, and Operators
+├── config.py           # Configuration for MySQL connection
+├── models.py           # (Optional) Database models if using ORM
+└── requirements.txt    # (Optional) Dependencies for the app (Flask, MySQL, etc.)
+
+HTTP Status Codes:
+- **200 OK**: The request has succeeded.
+- **201 Created**: The request has succeeded and a new resource has been created as a result. This status code is used when a new category, subcategory, or datapoint is successfully added.
+- **400 Bad Request**: The server cannot or will not process the request due to a client error (e.g., missing required fields or invalid data). This status code is returned when validation fails for adding a category, subcategory, or datapoint.
+- **404 Not Found**: The requested resource could not be found. This status code is used when subcategories or datapoints are not found for a given ID.
+- **500 Internal Server Error**: The server encountered an unexpected condition that prevented it from fulfilling the request. This status code is returned when there is a database error while adding a resource.
+
+
+
+
+
+1.`/categories` - POST
+   - Purpose: Adds new categories to the database.
+   - Description: This endpoint takes a list of categories from the JSON input, checks if they already exist, and if not, adds them. If a category is hardcoded, it also adds associated subcategories and datapoints automatically.
+   - Example Use Case: This could be used by an admin to add new categories of medical information that need to be recorded, such as new patient vitals.
+
+2. `/get_categories` - GET
+   - Purpose: Fetches all categories.
+   - Description: This endpoint returns the names and IDs of all available categories in the system. It helps in displaying all categories on the frontend.
+   - **Example Use Case**: A frontend application might use this to show the available categories for a nurse or doctor to select from.
+
+3. `/subcategories` - POST
+   - Purpose: Adds new subcategories under an existing category.
+   - Description: Takes a category ID or name from the JSON request and then adds subcategories under that category. It also adds datapoints associated with the subcategories.
+   - **Example Use Case**: When adding new measurement types (e.g., new types of vitals), an admin could use this endpoint to organize them under an existing category.
+
+4. `/get_subcategories` - GET
+   - Purpose: Fetches all subcategories for a specific category.
+   - Description: Takes either a category name or category ID as a query parameter and returns a list of subcategories for that category, including IDs and names.
+   - **Example Use Case**: When a healthcare worker wants to see all subcategories for a category like "Active Labor," they could use this endpoint to retrieve all related subcategories.
+
+5. `/datapoints` - POST
+   - Purpose: Adds new datapoints.
+   - Description: This endpoint allows for the addition of datapoints under specific subcategories. It expects the subcategory ID and details of the datapoints to be added.
+   - Example Use Case: Adding specific types of data that need to be recorded under a subcategory, like "Blood Pressure" or "Heart Rate."
+
+6. `/patient` - POST
+   - Purpose: Adds patient information.
+   - Description: Takes patient details like name, age, and bed number and adds this information to the database.
+   - Example Use Case**: This would be used when a new patient is admitted to the healthcare facility to create a new patient record.
+
+7. `/patient_data` - POST
+   - Purpose: Adds data for a specific patient.
+   - Description: This takes the patient ID, datapoint ID, and the value of the data being recorded (e.g., temperature reading) and stores it in the `PatientData` table.
+   - Example Use Case**: A nurse recording a patient's vitals could use this endpoint to save the recorded data in the system.
+
+8. `/annotation` - POST
+   - Purpose: Adds or updates annotations for a specific user.
+   - Description: It allows a user (nurse/doctor) to add annotations that help to customize how the categories and subcategories are shown or configured for their use.
+   - **Example Use Case**: A doctor may wish to customize the way information is displayed for their patients. They could use this endpoint to store those preferences.
+
+9. `/get_annotation` - GET
+   - Purpose: Fetches user-specific annotations.
+   - Description: Takes a user ID and retrieves the annotation settings that have been saved for that user.
+   - Example Use Case: When a doctor logs in, this endpoint could be called to show their customized view for patient categories and subcategories.
+
+
