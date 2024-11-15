@@ -5,6 +5,7 @@ import os
 from flask_cors import CORS
 
 
+
 # Database connections
 db1 = mysql.connector.connect(
     host=os.getenv("MYSQL_HOST", "mysql"),  # Use "mysql" instead of "localhost" for Docker
@@ -20,18 +21,29 @@ db1 = mysql.connector.connect(
 #    database="annotations"  # Annotation Builder database
 # )
 
-# database that stores username and password for login page. Currently working on endpoints.
-# used in /login routes
-login_db = mysql.connector.connect(
-    host=os.getenv("MYSQL_HOST", "mysql"),  # Use "mysql" instead of "localhost" for Docker
-    user=os.getenv("MYSQL_USER", "annotation_user"),
-    password=os.getenv("MYSQL_PASSWORD", "password"),
-    database=os.getenv("MYSQL_DATABASE", "login_db")  # Database name
+'''
+db2 = mysql.connector.connect(
+   host="localhost",
+   user="annotation_user",
+   password="",
+   database="static_annotation"  # Static operators database
 )
+'''
+'''
+db3 = mysql.connector.connect(
+   host="localhost",
+   user="annotation_user",
+   password="",
+   database="static_categories"  # Static categories database
+>>>>>>> feaf42f1946e4cf95a9c4254e142e7373652f8de
+)
+'''
+
 
 # Create Blueprint for routes
 api_routes = Blueprint('api_routes', __name__)
 CORS(api_routes)
+
 
 # Define routes in the blueprint
 
@@ -93,8 +105,6 @@ HARDCODED_CATEGORIES = {
 # -------------------------
 # POST /categories
 # -------------------------
-
-
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
    data = request.json
@@ -104,7 +114,7 @@ def add_categories():
            # Insert category
            category_name = category['name'].strip()  # Remove any extra spaces
            cursor.execute(
-               "SELECT id FROM Categories WHERE name = %s", (category_name,))
+               "SELECT id FROM categories WHERE name = %s", (category_name,))
            result = cursor.fetchone()
 
 
@@ -112,7 +122,7 @@ def add_categories():
                category_id = result[0]
            else:
                cursor.execute(
-                   "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
+                   "INSERT INTO categories (name) VALUES (%s)", (category_name,))
                category_id = cursor.lastrowid  # Get the last inserted ID
 
 
@@ -126,7 +136,7 @@ def add_categories():
                    for subcategory in hardcoded_subcategories:
                        subcategory_name = subcategory['name']
                        cursor.execute(
-                           "INSERT INTO Subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
+                           "INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
                        subcategory_id = cursor.lastrowid
 
 
@@ -460,9 +470,6 @@ def delete_subcategories():
 # ------------------------
 # TODO: This method is not finished yet
 
-
-
-
 @api_routes.route('/static_categories', methods=['GET'])
 def get_static_categories_with_details():
    try:
@@ -475,7 +482,6 @@ def get_static_categories_with_details():
                "SELECT * FROM Subcategories WHERE category_id = %s", (category_id,))
            subcategories = cursor.fetchall()
            category['subcategories'] = []  # new
-
 
            for subcategory in subcategories:
                subcategory_id = subcategory['id']
@@ -587,7 +593,6 @@ def get_curr_user():
     except Exception as e:
         return jsonify({"error":str(e)}), 500
 
-
 # -------------------------
 # GET /operands
 # -------------------------
@@ -602,6 +607,177 @@ def get_curr_user():
 #        return jsonify({"symbols": symbols}), 200
 #    except Exception as e:
 #        return jsonify({"error": str(e)}), 606
+=======
+@api_routes.route('/operands', methods=['GET'])
+def get_operands():
+   try:
+       cursor = db1.cursor(dictionary=True)
+       cursor.execute("SELECT * FROM Symbols")
+       symbols = cursor.fetchall()
+       return jsonify({"symbols": symbols}), 200
+   except Exception as e:
+       return jsonify({"error": str(e)}), 606
 
 
+# ------------------------
+# POST /patient_data
+# ------------------------
+"""
+    Adds data for a specific patient.
+
+    Expected JSON Input:
+    {
+        "patient_id": <patient_id>,
+        "datapoint_id": <datapoint_id>,
+        "data": "<data_value>"
+    }
+"""
+@api_routes.route('/patient_data', methods=['POST'])
+
+def add_patient_data():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        patient_id = data['patient_id']
+        datapoint_id = data['datapoint_id']
+        value = data['data']
+        
+        cursor.execute(
+            "INSERT INTO PatientData (patient_id, datapoint_id, data) VALUES (%s, %s, %s)",
+            (patient_id, datapoint_id, value)
+        )
+        db1.commit()
+        return jsonify({"message": "Patient data added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# POST /datapoints
+# ------------------------
+"""
+    Adds new datapoints for a specific subcategory.
+
+    Expected JSON Input:
+    {
+        "subcategory_id": <subcategory_id>,
+        "datapoints": [
+            {"name": "<datapoint_name>", "datatype": "<datatype>", "isMandatory": <bool>, "listItems": [ ... ]}
+        ]
+    }
+"""
+@api_routes.route('/datapoints', methods=['POST'])
+def add_datapoint():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        subcategory_id = data['subcategory_id']
+        name = data['name'].strip()
+        data_type = data['data_type'].lower()
+        is_mandatory = data.get('is_mandatory', 0)
+        
+        cursor.execute(
+            "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+            (subcategory_id, name, data_type, is_mandatory)
+        )
+        db1.commit()
+        return jsonify({"message": "Datapoint added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# POST /patients
+# ------------------------
+"""
+    Adds new patient information to the database.
+
+    Expected JSON Input:
+    {
+        "name": "<patient_name>",
+        "age": <patient_age>,
+        "bed_number": "<bed_number>"
+    }
+"""
+@api_routes.route('/patients', methods=['POST'])
+def add_patient():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        name = data['name'].strip()
+        age = data['age']
+        bed_number = data['bed_number'].strip()
+        
+        cursor.execute(
+            "INSERT INTO PatientInformation (name, age, bed_number) VALUES (%s, %s, %s)",
+            (name, age, bed_number)
+        )
+        db1.commit()
+        return jsonify({"message": "Patient added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# GET /patients
+# ------------------------
+@api_routes.route('/patients', methods=['GET'])
+def get_patients():
+    cursor = db1.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM PatientInformation")
+        patients = cursor.fetchall()
+        return jsonify(patients), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# POST /list_values
+# ------------------------
+@api_routes.route('/list_values', methods=['POST'])
+def add_list_values():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        datapoint_id = data['datapoint_id']
+        values = data['values']
+        
+        for value in values:
+            cursor.execute(
+                "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                (datapoint_id, value)
+            )
+        db1.commit()
+        return jsonify({"message": "List values added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# GET /annotations
+# ------------------------
+    
+"""
+    Retrieves user-specific annotations.
+
+    Query Parameters:
+    - user_id: The ID of the user
+
+    Returns JSON Output:
+    {
+        "annotations": [
+            {"anno_id": <annotation_id>, "category_id": <category_id>, "subcategory_id": <subcategory_id>}
+        ]
+    }
+"""
+@api_routes.route('/annotations', methods=['GET'])
+def get_annotations():
+    user_id = request.args.get('user_id')
+    cursor = db1.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM Annotation WHERE user_id = %s", (user_id,))
+        annotations = cursor.fetchall()
+        return jsonify(annotations), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
