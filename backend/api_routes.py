@@ -585,9 +585,98 @@ def get_curr_user():
         user = cursor.fetchone()
         if not user:
             return jsonify({"error":"Invalid username"}), 400
+        return jsonify(user), 200
 
-        return jsonify({"message":"user_id returned successfully"})
     except Exception as e:
+        return jsonify({"error":str(e)}), 500
+
+# ------------------------
+# GET /get_user
+# returns all user info in DB
+# ------------------------
+@api_routes.route('/get_user', methods=['GET'])
+def get_all_users():
+    cursor = db1.cursor()
+    try:
+        cursor.execute("SELECT user_id, username, password FROM User")
+        user = cursor.fetchall()
+        return jsonify(user), 200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}), 500
+
+# -------------------------
+# POST /get_anno_id
+# return the anno_id corresponding to input user_id
+# json input: { user_id: <user_id> }
+# ------------------------
+@api_routes.route('/get_anno_id', methods=['POST'])
+def get_anno_id():
+    cursor = db1.cursor()
+    data = request.json
+    try:
+        user_id = data['user_id']
+        if not user_id:
+            return jsonify({"Error": "User_id is required"}), 400
+        cursor.execute("SELECT anno_id FROM Annotation WHERE user_id = %s", (user_id,))
+        anno_id = cursor.fetchone()
+        if not anno_id:
+            return jsonify({"error":"Invalid user_id"}), 400
+        return jsonify(anno_id), 200
+    except Exception as e:
+        return jsonify({"error":str(e)}), 500
+
+# ------------------------
+# POST /update_anno_id
+# update the anno_id for the current user
+# json input: { user_id: <user_id>, anno_id: <anno_id>}
+# -----------------------
+@api_routes.route('/update_anno_id', methods=['POST'])
+def update_anno_id():
+    cursor = db1.cursor()
+    data = request.json
+    try:
+        user_id = data['user_id']
+        anno_id = data['anno_id']
+        if not user_id or anno_id:
+            return jsonify({"Error": "User_id and anno_id is required"}), 400
+        query = """
+        UPDATE Annotation 
+        SET anno_id = %s 
+        WHERE user_id = %s
+        """
+        cursor.execute(query, (anno_id, user_id))
+        db1.commit()
+        return jsonify({"message":"anno_id updated successfully"})
+
+    except Exception as e:
+        db1.rollback()
+        return jsonify({"error":str(e)}), 500
+
+# ------------------------
+# POST /add_anno_id
+# add anno_id (new annotation configuration) for given user
+# json input: {user_id: <user_id>, anno_id:<anno_id>}
+# ------------------------
+@api_routes.route('/update_anno_id', methods=['POST'])
+def add_anno_id():
+    cursor = db1.cursor()
+    data = request.json
+    try:
+        user_id = data['user_id']
+        anno_id = data['anno_id']
+        if not user_id or anno_id:
+            return jsonify({"Error": "User_id and anno_id is required"}), 400
+        query = """
+        INSERT INTO Annotation (anno_id, user_id)
+        VALUES (%s, %s)
+        """
+        cursor.execute(query, (anno_id, user_id))
+        db1.commit()
+        return jsonify({"message":"anno_id added successfully"})
+
+    except Exception as e:
+        db1.rollback()
         return jsonify({"error":str(e)}), 500
 
 # -------------------------
