@@ -99,9 +99,6 @@ HARDCODED_CATEGORIES = {
    }
 }
 
-
-
-
 # -------------------------
 # POST /categories
 # -------------------------
@@ -522,7 +519,7 @@ def get_static_categories_with_details():
 @api_routes.route('/signin', methods=['POST'])
 def add_user():
     data = request.json
-    cursor = login_db.cursor()
+    cursor = db1.cursor()
     try:
         username = data['username']
         password = data['password']
@@ -533,14 +530,14 @@ def add_user():
         if not password:
             return jsonify({"Error": "Password is required"}), 400
 
-        cursor.execute("SELECT user_id FROM user_login WHERE username = %s", (username,))
+        cursor.execute("SELECT user_id FROM User WHERE username = %s", (username,))
         user = cursor.fetchone()
         if user:
             return jsonify({"Error": "Username already exists"}), 400
 
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        cursor.execute("INSERT INTO user_login (username, password) VALUES (%s)", (username,hashed_password))
-        login_db.commit()
+        cursor.execute("INSERT INTO User (username, password) VALUES (%s)", (username,hashed_password))
+        db1.commit()
 
      except Exception as e:
          return jsonify({"error":str(e)}), 500
@@ -552,13 +549,13 @@ def add_user():
 @api_routes.route('/login', methods=['POST'])
 def login_user():
     data = request.json
-    cursor = login_db.cursor()
+    cursor = db1.cursor()
     try: 
         username = data['username']
         password = data['password']
         if not username or not password:
             return jsonify({"Error": "Username is required"}), 400
-        cursor.execute("SELECT password FROM user_login WHERE username = %s", (username,))
+        cursor.execute("SELECT password FROM User WHERE username = %s", (username,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"error":"Invalid username or password"}), 400
@@ -579,12 +576,12 @@ def login_user():
 @api_routes.route('/get_user', methods=['POST'])
 def get_curr_user():
     data = request.json
-    cursor = login_db.cursor()
+    cursor = db1.cursor()
     try:
         username = data['username']
         if not username:
             return jsonify({"Error": "Username is required"}), 400
-        cursor.execute("SELECT user_id FROM user_login WHERE username = %s", (username,))
+        cursor.execute("SELECT user_id FROM User WHERE username = %s", (username,))
         user = cursor.fetchone()
         if not user:
             return jsonify({"error":"Invalid username"}), 400
@@ -607,7 +604,6 @@ def get_curr_user():
 #        return jsonify({"symbols": symbols}), 200
 #    except Exception as e:
 #        return jsonify({"error": str(e)}), 606
-=======
 @api_routes.route('/operands', methods=['GET'])
 def get_operands():
    try:
