@@ -11,13 +11,14 @@ db1 = mysql.connector.connect(
    database="annotations"  # Annotation Builder database
 )
 
-
+'''
 db2 = mysql.connector.connect(
    host="localhost",
    user="annotation_user",
    password="",
    database="static_annotation"  # Static operators database
 )
+'''
 '''
 db3 = mysql.connector.connect(
    host="localhost",
@@ -92,8 +93,6 @@ HARDCODED_CATEGORIES = {
 # -------------------------
 # POST /categories
 # -------------------------
-
-
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
    data = request.json
@@ -459,9 +458,6 @@ def delete_subcategories():
 # ------------------------
 # TODO: This method is not finished yet
 
-
-
-
 @api_routes.route('/static_categories', methods=['GET'])
 def get_static_categories_with_details():
    try:
@@ -513,16 +509,180 @@ def get_static_categories_with_details():
 # GET /operands
 # -------------------------
 
-
 @api_routes.route('/operands', methods=['GET'])
 def get_operands():
    try:
-       cursor = db2.cursor(dictionary=True)
+       cursor = db1.cursor(dictionary=True)
        cursor.execute("SELECT * FROM Symbols")
        symbols = cursor.fetchall()
        return jsonify({"symbols": symbols}), 200
    except Exception as e:
        return jsonify({"error": str(e)}), 606
+
+
+# ------------------------
+# POST /patient_data
+# ------------------------
+"""
+    Adds data for a specific patient.
+
+    Expected JSON Input:
+    {
+        "patient_id": <patient_id>,
+        "datapoint_id": <datapoint_id>,
+        "data": "<data_value>"
+    }
+"""
+@api_routes.route('/patient_data', methods=['POST'])
+
+def add_patient_data():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        patient_id = data['patient_id']
+        datapoint_id = data['datapoint_id']
+        value = data['data']
+        
+        cursor.execute(
+            "INSERT INTO PatientData (patient_id, datapoint_id, data) VALUES (%s, %s, %s)",
+            (patient_id, datapoint_id, value)
+        )
+        db1.commit()
+        return jsonify({"message": "Patient data added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# POST /datapoints
+# ------------------------
+"""
+    Adds new datapoints for a specific subcategory.
+
+    Expected JSON Input:
+    {
+        "subcategory_id": <subcategory_id>,
+        "datapoints": [
+            {"name": "<datapoint_name>", "datatype": "<datatype>", "isMandatory": <bool>, "listItems": [ ... ]}
+        ]
+    }
+"""
+@api_routes.route('/datapoints', methods=['POST'])
+def add_datapoint():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        subcategory_id = data['subcategory_id']
+        name = data['name'].strip()
+        data_type = data['data_type'].lower()
+        is_mandatory = data.get('is_mandatory', 0)
+        
+        cursor.execute(
+            "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+            (subcategory_id, name, data_type, is_mandatory)
+        )
+        db1.commit()
+        return jsonify({"message": "Datapoint added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# POST /patients
+# ------------------------
+"""
+    Adds new patient information to the database.
+
+    Expected JSON Input:
+    {
+        "name": "<patient_name>",
+        "age": <patient_age>,
+        "bed_number": "<bed_number>"
+    }
+"""
+@api_routes.route('/patients', methods=['POST'])
+def add_patient():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        name = data['name'].strip()
+        age = data['age']
+        bed_number = data['bed_number'].strip()
+        
+        cursor.execute(
+            "INSERT INTO PatientInformation (name, age, bed_number) VALUES (%s, %s, %s)",
+            (name, age, bed_number)
+        )
+        db1.commit()
+        return jsonify({"message": "Patient added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# GET /patients
+# ------------------------
+@api_routes.route('/patients', methods=['GET'])
+def get_patients():
+    cursor = db1.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM PatientInformation")
+        patients = cursor.fetchall()
+        return jsonify(patients), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# POST /list_values
+# ------------------------
+@api_routes.route('/list_values', methods=['POST'])
+def add_list_values():
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        datapoint_id = data['datapoint_id']
+        values = data['values']
+        
+        for value in values:
+            cursor.execute(
+                "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                (datapoint_id, value)
+            )
+        db1.commit()
+        return jsonify({"message": "List values added successfully."}), 200
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# GET /annotations
+# ------------------------
+    
+"""
+    Retrieves user-specific annotations.
+
+    Query Parameters:
+    - user_id: The ID of the user
+
+    Returns JSON Output:
+    {
+        "annotations": [
+            {"anno_id": <annotation_id>, "category_id": <category_id>, "subcategory_id": <subcategory_id>}
+        ]
+    }
+"""
+@api_routes.route('/annotations', methods=['GET'])
+def get_annotations():
+    user_id = request.args.get('user_id')
+    cursor = db1.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM Annotation WHERE user_id = %s", (user_id,))
+        annotations = cursor.fetchall()
+        return jsonify(annotations), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
 
 
 
