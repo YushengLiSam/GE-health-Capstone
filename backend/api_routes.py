@@ -538,8 +538,7 @@ def add_user():
         hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         cursor.execute("INSERT INTO User (username, password) VALUES (%s)", (username,hashed_password))
         db1.commit()
-
-     except Exception as e:
+    except Exception as e:
          return jsonify({"error":str(e)}), 500
         
 # -------------------------

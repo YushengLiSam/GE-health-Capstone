@@ -7,8 +7,9 @@ const PatientInformation = () => {
   const [patientData, setPatientData] = useState({
     name: '',
     age: '',
-    dob: '',
-    fetalCount: '1', // default value for fetal count
+    // dob: '',
+    bed_number: '',
+    // fetalCount: '1', // default value for fetal count
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
@@ -36,26 +37,27 @@ const PatientInformation = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(patientData);
-    navigate('/admin/ui', { state: { patientName: patientData.name } });
-    // // API call to store the patient info
-    // try {
-    //   const response = await fetch('https://your-api-url.com/patients', {
-    //     method: 'POST',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(patientData),
-    //   });
+    
+    // API call to store the patient info
+    try {
+      const response = await fetch('http://127.0.0.1:5002/api/patients', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(patientData),
+      });
       
-    //   if (response.ok) {
-    //     // If the data is stored successfully, navigate to the new page
-    //     navigate('/gallery');
-    //   } else {
-    //     console.error('Error storing patient information');
-    //   }
-    // } catch (error) {
-    //   console.error('API error:', error);
-    // }
+      if (response.ok) {
+        // If the data is stored successfully, navigate to the new page
+        navigate('/gallery');
+      } else {
+        console.error('Error storing patient information');
+      }
+    } catch (error) {
+      console.error('API error:', error);
+    }
+    navigate('/admin/patient', { state: { patientName: patientData.name } });
   };
 
   return (
@@ -90,7 +92,7 @@ const PatientInformation = () => {
             />
           </div>
 
-          <div className={styles.formField}>
+          {/* <div className={styles.formField}>
             <label htmlFor="dob">DOB</label>
             <input
               type="date"
@@ -100,9 +102,22 @@ const PatientInformation = () => {
               className={styles.inputField}
               aria-label="Date of Birth"
             />
-          </div>
+          </div> */}
 
           <div className={styles.formField}>
+            <label htmlFor="name">Bed Number</label>
+            <input
+              type="text"
+              id="bed_number"
+              value={patientData.bed_number}
+              onChange={handleChange}
+              className={styles.inputField}
+              placeholder="Enter Bed Number"
+              aria-label="bed"
+            />
+          </div>
+
+          {/* <div className={styles.formField}>
             <label htmlFor="dob">Fetal Count</label>
             <input
               type="number"
@@ -112,7 +127,7 @@ const PatientInformation = () => {
               className={styles.inputField}
               aria-label="Fetal Count"
             />
-          </div>
+          </div> */}
 
           
           {/* Submit Button */}
