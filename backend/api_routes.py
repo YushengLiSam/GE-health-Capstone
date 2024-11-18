@@ -780,7 +780,15 @@ def add_datapoint():
     {
         "name": "<patient_name>",
         "age": <patient_age>,
-        "bed_number": "<bed_number>"
+        "bed_number": "<bed_number>",
+        "dob": "<date_of_birth>",
+        "fetal_count": <fetal_count>
+    }
+
+    Returns:
+    {
+        "message": "Patient added successfully.",
+        "patient_id": <generated_patient_id>
     }
 """
 @api_routes.route('/patients', methods=['POST'])
@@ -791,20 +799,30 @@ def add_patient():
         name = data['name'].strip()
         age = data['age']
         bed_number = data['bed_number'].strip()
-        
+        dob = data['dob'].strip()
+        fetal_count = data['fetal_count']
+
+        # insert patient info
         cursor.execute(
-            "INSERT INTO PatientInformation (name, age, bed_number) VALUES (%s, %s, %s)",
-            (name, age, bed_number)
+            "INSERT INTO PatientInformation (name, age, bed_number, dob, fetal_count) VALUES (%s, %s, %s, %s, %s)",
+            (name, age, bed_number, dob, fetal_count)
         )
+        # get new patient ID
+        patient_id = cursor.lastrowid
+
         db1.commit()
-        return jsonify({"message": "Patient added successfully."}), 200
+
+        # return info and ID
+        return jsonify({"message": "Patient added successfully.", "patient_id": patient_id}), 200
+
     except Exception as e:
-        db1.rollback()  # Rollback in case of error
+        db1.rollback()
         return jsonify({"error": str(e)}), 400
 
 # ------------------------
 # GET /patients
 # ------------------------
+"Input example: GET /patients/5"
 @api_routes.route('/patients', methods=['GET'])
 def get_patients():
     cursor = db1.cursor(dictionary=True)
@@ -814,6 +832,25 @@ def get_patients():
         return jsonify(patients), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 400
+
+# ------------------------
+# GET /patients/<patient_id>
+# ------------------------
+@api_routes.route('/patients/<int:patient_id>', methods=['GET'])
+def get_patient_by_id(patient_id):
+    cursor = db1.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM PatientInformation WHERE id = %s", (patient_id,))
+        patient = cursor.fetchone()
+
+        if patient:
+            return jsonify(patient), 200
+        else:
+            return jsonify({"error": "Patient not found"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 
 # ------------------------
 # POST /list_values
