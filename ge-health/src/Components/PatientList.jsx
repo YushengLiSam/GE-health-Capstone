@@ -91,7 +91,7 @@ const PatientList = () => {
  
 
   useEffect(() => {
-    fetch('/api/patients') // Replace with your API endpoint
+    fetch('http://127.0.0.1:5002/api/patients') // Replace with your API endpoint
       .then(response => response.json())
       .then(data => setPatients(data))
       .catch(error => console.error('Error fetching patients:', error));
@@ -110,7 +110,7 @@ const PatientList = () => {
       {patients.map(patient => (
         <div key={patient.id} className="patient-card" onClick={() => navigateToDetail(patient.id)}>
           <h3>{patient.name}</h3>
-          <p><strong>Bed No:</strong> {patient.bedNo}</p>
+          <p><strong>Bed No:</strong> {patient.bed_number}</p>
           <p><strong>DOB:</strong> {patient.dob}</p>
           <p><strong>Age:</strong> {patient.age}</p>
           <p><strong>Fetal Count:</strong> {patient.fetalCount}</p>
