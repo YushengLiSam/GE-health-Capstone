@@ -27,7 +27,7 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
         {datapoints.map((field) => (
           <Form.Group className="mb-3 input-group" key={field.name} controlId={field.name}>
             <Form.Label>{field.name}</Form.Label>
-            {field.inputType === "Textbox" ? (
+            {field.inputType === "textbox" ? (
               <Form.Control
                 type="text"
                 name={field.name}
@@ -36,7 +36,7 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
                 required={field.isMandatory}
                 className="input-field"
               />
-            ) : field.inputType === "Dropdown" ? (
+            ) : field.inputType === "dropdown" ? (
               <Form.Control
                 as="select"
                 name={field.name}

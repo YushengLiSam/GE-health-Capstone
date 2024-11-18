@@ -22,7 +22,7 @@ ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, T
 function UserInterface() {
   const [patientData, setPatientData] = useState({});
   const [alerts, setAlerts] = useState([]);
-  const [selectedStage, setSelectedStage] = useState('Select Stage');
+  const [selectedStage, setSelectedStage] = useState();
   //const [chartData, setChartData] = useState([]);
 
   const location = useLocation();
