@@ -1,37 +1,36 @@
 import React, { useState, useRef } from 'react';
 import styles from './AnnotationBuilder.module.css'; // Import the CSS module
-import EditableDropdown from './EditableDropdown';
+import makeAnimated from 'react-select/animated';
+import Creatable from 'react-select/creatable';
+
+const animatedComponents = makeAnimated();
 
 function AnnotationBuilder() {
   const [categories, setCategories] = useState([]);
+  const [foldedCategories, setFoldedCategories] = useState({});
+  const [foldedSubcategories, setFoldedSubcategories] = useState({});
   const fileInputRef = useRef(null); // Reference for the hidden file input
 
   const categoryOptions = [
     'Pre-Admission', 'Early Labor', 'Active Labor', 'Transition', 'Pushing/Delivery', 'Expulsion of Placenta'
-  ];
+  ].map(option => ({ value: option, label: option }));
 
   const subcategoryOptions = [
     'Patient interventions', 'FHR', 'Contractions', 'Blood work', 'I/O Interventions', 'Medication Administration',
-    'Pain Management', 'Membrane Status', 'Fetal Position', 'Epidural Placement', 'Vitals', 'Delivery time of infant',
-    'Time of delivery of Placenta', 'Estimated Blood Loss (EBL)', 'Blood type', 'Reason for Admission'
-  ];
+    'Pain Management', 'Membrane Status', 'Fetal Position', 'Epidural Placement', 'Vitals'
+  ].map(option => ({ value: option, label: option }));
 
   const datapointOptions = [
-    { name: 'HR', type: 'Float' },
-    { name: 'B/p', type: 'String' },
-    { name: 'Respirations', type: 'String' },
-    { name: 'SpO2', type: 'Float' },
-    { name: 'Temp', type: 'Float' },
-    { name: 'Pulse Ox', type: 'String' },
-    { name: 'Dilation', type: 'Float' },
-    {
-      name: 'Monitor Mode', type: 'List', listItems: [
-        'External US', 'Internal Scalp Electrode', 'Auscultation', 'Fetoscope', 'Doppler', 'Telemetry'
-      ]
-    }
+    { value: 'HR', label: 'HR', type: 'Float' },
+    { value: 'B/p', label: 'B/p', type: 'String' },
+    { value: 'Respirations', label: 'Respirations', type: 'String' },
+    { value: 'SpO2', label: 'SpO2', type: 'Float' },
+    { value: 'Temp', label: 'Temp', type: 'Float' },
+    { value: 'Pulse Ox', label: 'Pulse Ox', type: 'String' }
   ];
 
-  const dataTypeOptions = ['Float', 'String', 'List'];
+  const dataTypeOptions = ['Float', 'String', 'Numeric', 'Boolean', 'List'].map(option => ({ value: option, label: option }));
+  const inputTypeOptions = ['Textbox', 'Dropdown', 'Checkbox'].map(option => ({ value: option, label: option }));
 
 
   const handleImportData = (event) => {
@@ -42,40 +41,21 @@ function AnnotationBuilder() {
         try {
           const importedData = JSON.parse(e.target.result);
           if (importedData.categories) {
-            const formattedCategories = importedData.categories.map(category => {
-              const selectedCategory = categoryOptions.includes(category.name.trim()) ? category.name.trim() : 'Other';
-              const customCategory = selectedCategory === 'Other' ? category.name.trim() : '';
-
-              return {
-                selectedCategory,
-                customCategory,
-                subcategories: category.subcategories.map(subcategory => {
-                  const selectedSubcategory = subcategoryOptions.includes(subcategory.name.trim()) ? subcategory.name.trim() : 'Other';
-                  const customSubcategory = selectedSubcategory === 'Other' ? subcategory.name.trim() : '';
-
-                  return {
-                    selectedSubcategory,
-                    customSubcategory,
-                    datapoints: subcategory.datapoints.map(datapoint => {
-                      const selectedDatapoint = datapointOptions.some(dp => dp.name === datapoint.name.trim()) ? datapoint.name.trim() : 'Other';
-                      const customDatapoint = selectedDatapoint === 'Other' ? datapoint.name.trim() : '';
-                      const dataType = datapoint.datatype;
-                      const isMandatory = datapoint.isMandatory || false;
-                      const listItems = datapoint.listItems || [];
-
-                      return {
-                        selectedDatapoint,
-                        customDatapoint,
-                        type: dataType,
-                        isMandatory,
-                        listItems,
-                      };
-                    })
-                  };
-                })
-              };
-            });
-
+            const formattedCategories = importedData.categories.map(category => ({
+              selectedCategory: category.name,
+              customCategory: '',
+              subcategories: category.subcategories.map(subcategory => ({
+                selectedSubcategory: subcategory.name,
+                customSubcategory: '',
+                datapoints: subcategory.datapoints.map(datapoint => ({
+                  selectedDatapoint: datapoint.name,
+                  type: datapoint.datatype,
+                  inputType: datapoint.inputType,
+                  isMandatory: datapoint.isMandatory || false,
+                  listItems: datapoint.listItems || []
+                }))
+              }))
+            }));
             setCategories(formattedCategories);
           } else {
             alert("Invalid format: Missing 'categories' field");
@@ -83,7 +63,7 @@ function AnnotationBuilder() {
         } catch (error) {
           alert("Error parsing JSON file");
         }
-
+        // Reset file input to allow re-import of the same file
         event.target.value = null;
       };
       reader.readAsText(file);
@@ -97,56 +77,30 @@ function AnnotationBuilder() {
   };
 
   const exportData = () => {
-    // Format the current state data into the JSON structure
     const dataToExport = {
       categories: categories.map(category => ({
-        name: category.selectedCategory === 'Other' ? category.customCategory : category.selectedCategory,
+        name: category.selectedCategory,
         subcategories: category.subcategories.map(subcategory => ({
-          name: subcategory.selectedSubcategory === 'Other' ? subcategory.customSubcategory : subcategory.selectedSubcategory,
+          name: subcategory.selectedSubcategory,
           datapoints: subcategory.datapoints.map(datapoint => ({
-            name: datapoint.selectedDatapoint === 'Other' ? datapoint.customDatapoint : datapoint.selectedDatapoint,
+            name: datapoint.selectedDatapoint,
             datatype: datapoint.type,
-            inputType: datapoint.inputType || 'Textbox', // Default to 'Textbox' if no inputType is specified
+            inputType: datapoint.inputType,
             isMandatory: datapoint.isMandatory,
-            listItems: datapoint.listItems || []
+            listItems: datapoint.listItems
           }))
         }))
       }))
     };
 
-    // Convert the data to a JSON string
-    const json = JSON.stringify(dataToExport, null, 2); // Pretty-print with 2-space indentation
-
-    // Create a blob from the JSON and a download link
+    const json = JSON.stringify(dataToExport, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-
-    // Create an anchor element to download the file
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'annotation_data.json'; // Default file name
+    link.download = 'annotation_data.json';
     link.click();
-
-    // Clean up the URL object
     URL.revokeObjectURL(url);
-  };
-
-  const handleCustomCategoryChange = (categoryIndex, value) => {
-    const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].customCategory = value;
-    setCategories(updatedCategories);
-  };
-
-  const handleCustomSubcategoryChange = (categoryIndex, subcategoryIndex, value) => {
-    const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].customSubcategory = value;
-    setCategories(updatedCategories);
-  };
-
-  const handleCustomDatapointChange = (categoryIndex, subcategoryIndex, datapointIndex, value) => {
-    const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].customDatapoint = value;
-    setCategories(updatedCategories);
   };
 
   const addCategory = () => {
@@ -173,20 +127,24 @@ function AnnotationBuilder() {
 
   const handleCategoryChange = (categoryIndex, value) => {
     const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].selectedCategory = value;
+    updatedCategories[categoryIndex].selectedCategory = value?.value || '';
     setCategories(updatedCategories);
   };
 
   const handleSubcategoryChange = (categoryIndex, subcategoryIndex, value) => {
     const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].selectedSubcategory = value;
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].selectedSubcategory = value?.value || '';
     setCategories(updatedCategories);
   };
 
   const addDatapoint = (categoryIndex, subcategoryIndex) => {
     const updatedCategories = [...categories];
     updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints.push({
-      selectedDatapoint: '', type: '', customDataType: '', listItems: []
+      selectedDatapoint: '',
+      type: '',
+      inputType: 'Textbox',
+      listItems: [],
+      isMandatory: false
     });
     setCategories(updatedCategories);
   };
@@ -201,41 +159,19 @@ function AnnotationBuilder() {
 
   const handleDatapointChange = (categoryIndex, subcategoryIndex, datapointIndex, value) => {
     const updatedCategories = [...categories];
-    const selectedDatapoint = datapointOptions.find(option => option.name === value);
-
-    if (selectedDatapoint) {
-      updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex] = {
-        selectedDatapoint: selectedDatapoint.name,
-        type: selectedDatapoint.type,
-        listItems: selectedDatapoint.listItems || []
-      };
-    } else {
-      updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex] = {
-        selectedDatapoint: value, // if value is unmatched, just set the raw input value
-        type: '',
-        listItems: []
-      };
-    }
-
+    const selectedDatapoint = datapointOptions.find(option => option.value === value?.value);
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex] = {
+      selectedDatapoint: value?.value || '',
+      type: selectedDatapoint?.type || ''
+    };
     setCategories(updatedCategories);
   };
 
   const handleDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, value) => {
     const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = value;
-    // Clear custom data type if a predefined option is selected
-    if (value !== 'Other') {
-      updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].customDataType = '';
-    }
+    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].type = value?.value || '';
     setCategories(updatedCategories);
   };
-
-  const handleCustomDataTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, customValue) => {
-    const updatedCategories = [...categories];
-    updatedCategories[categoryIndex].subcategories[subcategoryIndex].datapoints[datapointIndex].customDataType = customValue;
-    setCategories(updatedCategories);
-  };
-
 
   const handleMandatoryChange = (categoryIndex, subcategoryIndex, datapointIndex) => {
     const updatedCategories = [...categories];
@@ -243,40 +179,78 @@ function AnnotationBuilder() {
     setCategories(updatedCategories);
   };
 
-  const handleSave = async () => {
-    const formattedData = categories.map(category => ({
-      name: category.selectedCategory === 'Other' ? category.customCategory : category.selectedCategory,
-      subcategories: category.subcategories.map(subcategory => ({
-        name: subcategory.selectedSubcategory === 'Other' ? subcategory.customSubcategory : subcategory.selectedSubcategory,
-        datapoints: subcategory.datapoints.map(datapoint => ({
-          name: datapoint.selectedDatapoint === 'Other' ? datapoint.customDatapoint : datapoint.selectedDatapoint,
-          datatype: datapoint.type,
-          inputType: datapoint.inputType || 'Textbox',
-          isMandatory: datapoint.isMandatory || false,
-          listItems: datapoint.listItems || []
-        }))
-      }))
-    }));
+  const handleInputTypeChange = (categoryIndex, subcategoryIndex, datapointIndex, newValue) => {
+    const updatedCategories = [...categories];
+    const datapoint = updatedCategories[categoryIndex]?.subcategories[subcategoryIndex]?.datapoints[datapointIndex];
 
+    if (!datapoint) return;
+
+    datapoint.inputType = newValue?.value || '';
+    if (datapoint.inputType !== 'Dropdown') {
+      datapoint.listItems = []; // Clear listItems if not Dropdown
+    }
+
+    setCategories(updatedCategories);
+  };
+
+
+  const handleListItemsChange = (categoryIndex, subcategoryIndex, datapointIndex, newValue) => {
+    const updatedCategories = [...categories];
+    const datapoint = updatedCategories[categoryIndex]?.subcategories[subcategoryIndex]?.datapoints[datapointIndex];
+
+    if (!datapoint) return;
+
+    datapoint.listItems = newValue ? newValue.map(option => option.value) : [];
+    setCategories(updatedCategories);
+  };
+
+  const toggleCategoryFold = (index) => {
+    setFoldedCategories(prev => ({ ...prev, [index]: !prev[index] }));
+  };
+
+  const toggleSubcategoryFold = (categoryIndex, subcategoryIndex) => {
+    setFoldedSubcategories(prev => ({
+      ...prev,
+      [`${categoryIndex}-${subcategoryIndex}`]: !prev[`${categoryIndex}-${subcategoryIndex}`]
+    }));
+  };
+
+  const handleSave = async () => {
+    // Format the data to match the backend requirements
+    const formattedData = categories.map((category) => ({
+      name: category.selectedCategory || category.customCategory,
+      subcategories: category.subcategories.map((subcategory) => ({
+        name: subcategory.selectedSubcategory || subcategory.customSubcategory,
+        datapoints: subcategory.datapoints.map((datapoint) => ({
+          name: datapoint.selectedDatapoint || datapoint.customDatapoint,
+          datatype: datapoint.type,
+          inputType: datapoint.inputType || 'Textbox', // Default to 'Textbox' if undefined
+          isMandatory: datapoint.isMandatory || false,
+          listItems: datapoint.inputType === 'Dropdown' ? datapoint.listItems || [] : undefined, // Include listItems only for Dropdown
+        })),
+      })),
+    }));
+  
     try {
-      console.log(formattedData);
+      console.log('Saving data:', formattedData);
+  
       const response = await fetch('http://127.0.0.1:5002/api/categories', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ categories: formattedData })
+        body: JSON.stringify({ categories: formattedData }),
       });
-
+  
       if (response.ok) {
-        alert("Data saved successfully!");
+        alert('Data saved successfully!');
       } else {
-        console.log("status code is:", response.status);
-        alert("Failed to save data. Please try again.");
+        console.error(`Failed to save data. Status: ${response.status}`);
+        alert('Failed to save data. Please try again.');
       }
     } catch (error) {
-      console.error("Error saving data:", error);
-      alert("An error occurred while saving data.");
+      console.error('Error while saving data:', error);
+      alert('An error occurred while saving data. Please check your network or server.');
     }
   };
 
@@ -308,69 +282,73 @@ function AnnotationBuilder() {
         {categories.map((category, categoryIndex) => (
           <div key={categoryIndex} className={styles.category}>
             <div className={styles.categoryRow}>
-              <EditableDropdown
+              <Creatable
                 options={categoryOptions}
-                value={category.selectedCategory}
-                customValue={category.customCategory}
+                value={category.selectedCategory ? { value: category.selectedCategory, label: category.selectedCategory } : null}
                 onChange={(value) => handleCategoryChange(categoryIndex, value)}
-                onCustomChange={(customValue) => handleCustomCategoryChange(categoryIndex, customValue)}
-                placeholder="Select a category"
+                placeholder="Select or create a category"
               />
-
               <button onClick={() => addSubcategory(categoryIndex)} className={styles.subcategoryButton}>Add Subcategory</button>
               <button onClick={() => removeCategory(categoryIndex)} className={styles.categoryButton}>Remove Category</button>
+              <button onClick={() => toggleCategoryFold(categoryIndex)}>{foldedCategories[categoryIndex] ? 'Expand' : 'Collapse'}</button>
             </div>
 
-            {category.subcategories.map((subcategory, subcategoryIndex) => (
+            {!foldedCategories[categoryIndex] && category.subcategories.map((subcategory, subcategoryIndex) => (
               <div key={subcategoryIndex} className={styles.subcategory}>
                 <div className={styles.subcategoryRow}>
-                  <EditableDropdown
+                  <Creatable
                     options={subcategoryOptions}
-                    value={subcategory.selectedSubcategory}
-                    customValue={subcategory.customSubcategory}
+                    value={subcategory.selectedSubcategory ? { value: subcategory.selectedSubcategory, label: subcategory.selectedSubcategory } : null}
                     onChange={(value) => handleSubcategoryChange(categoryIndex, subcategoryIndex, value)}
-                    onCustomChange={(customValue) => handleCustomSubcategoryChange(categoryIndex, subcategoryIndex, customValue)}
-                    placeholder="Select a subcategory"
+                    placeholder="Select or create a subcategory"
                   />
-                  <button onClick={() => addDatapoint(categoryIndex, subcategoryIndex)} className={styles.datapointButton}>Add Datapoint</button>
-                  <button onClick={() => removeSubcategory(categoryIndex, subcategoryIndex)} className={styles.subcategoryButton}>Remove Subcategory</button>
+                  <button onClick={() => removeSubcategory(categoryIndex, subcategoryIndex)}>Remove Subcategory</button>
+                  <button onClick={() => toggleSubcategoryFold(categoryIndex, subcategoryIndex)}>{foldedSubcategories[`${categoryIndex}-${subcategoryIndex}`] ? 'Expand' : 'Collapse'}</button>
+                  <button onClick={() => addDatapoint(categoryIndex, subcategoryIndex)}>Add Datapoint</button>
                 </div>
 
-                {subcategory.datapoints.map((datapoint, datapointIndex) => (
+                {!foldedSubcategories[`${categoryIndex}-${subcategoryIndex}`] && subcategory.datapoints.map((datapoint, datapointIndex) => (
                   <div key={datapointIndex} className={styles.datapoint}>
-
-
-                    <div className={styles['datapoint-row']}>
-                      <EditableDropdown
-                        options={datapointOptions.map(dp => dp.name)}
-                        value={datapoint.selectedDatapoint}
-                        customValue={datapoint.customDatapoint}
-                        onChange={(value) => handleDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
-                        onCustomChange={(customValue) => handleCustomDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, customValue)}
-                        placeholder="Select a datapoint"
+                    <Creatable
+                      options={datapointOptions}
+                      value={datapoint.selectedDatapoint ? { value: datapoint.selectedDatapoint, label: datapoint.selectedDatapoint } : null}
+                      onChange={(value) => handleDatapointChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
+                      placeholder="Select or create a datapoint"
+                    />
+                    <Creatable
+                      options={dataTypeOptions}
+                      value={datapoint.type ? { value: datapoint.type, label: datapoint.type } : null}
+                      onChange={(value) => handleDataTypeChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
+                      placeholder="Select a data type"
+                    />
+                    <Creatable
+                      options={inputTypeOptions}
+                      value={datapoint.inputType ? { value: datapoint.inputType, label: datapoint.inputType } : null}
+                      onChange={(value) => handleInputTypeChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
+                      placeholder="Select input type"
+                    />
+                    {datapoint.inputType === 'Dropdown' && (
+                      <Creatable
+                      components={animatedComponents}
+                      isMulti
+                      options={datapoint.listItems?.map(item => ({ value: item, label: item }))}
+                      value={datapoint.listItems?.map(item => ({ value: item, label: item }))}
+                      onChange={(value) =>
+                        handleListItemsChange(categoryIndex, subcategoryIndex, datapointIndex, value)
+                      }
+                      placeholder="Add dropdown items"
+                    />
+                    )}
+                    <label className={styles.mandatoryLabel}>
+                      <input
+                        type="checkbox"
+                        checked={datapoint.isMandatory}
+                        onChange={() => handleMandatoryChange(categoryIndex, subcategoryIndex, datapointIndex)}
                       />
-
-                      <EditableDropdown
-                        options={dataTypeOptions}
-                        value={datapoint.type}
-                        customValue={datapoint.customDataType}
-                        onChange={(value) => handleDataTypeChange(categoryIndex, subcategoryIndex, datapointIndex, value)}
-                        onCustomChange={(customValue) => handleCustomDataTypeChange(categoryIndex, subcategoryIndex, datapointIndex, customValue)}
-                        placeholder="Select a data type"
-                      />
-                      <label className={styles.mandatoryLabel}>
-                        <input
-                          type="checkbox"
-                          checked={datapoint.isMandatory}
-                          onChange={() => handleMandatoryChange(categoryIndex, subcategoryIndex, datapointIndex)}
-                        />
-                        Mandatory
-                      </label>
-                    </div>
-
-                    <button onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}>Remove</button>
+                      Mandatory
+                    </label>
+                    <button onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}>Remove Datapoint</button>
                   </div>
-
                 ))}
               </div>
             ))}
