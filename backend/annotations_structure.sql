@@ -42,6 +42,7 @@ CREATE TABLE `Datapoints` (
   `subcategory_id` int DEFAULT NULL,
   `name` varchar(255) NOT NULL,
   `data_type` varchar(255) NOT NULL,
+  `input_type` varchar(255) NOT NULL,
   `is_mandatory` tinyint(1) DEFAULT '0',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

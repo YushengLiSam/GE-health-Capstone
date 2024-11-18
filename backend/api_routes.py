@@ -53,50 +53,50 @@ def index():
 
 
 HARDCODED_CATEGORIES = {
-   "Active Labor (5cm-8cm)": {
-       "subcategories": [
-           {
-               "name": "Vitals",
-               "datapoints": [
-                   {"name": "HR", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True},
-                   {"name": "Respirations", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True},
-                   {"name": "Blood Pressure", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True},
-                   {"name": "Pulse Ox", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True},
-                   {"name": "Temperature", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True}
-               ]
-           },
-           {
-               "name": "Pain Management",
-               "datapoints": [
-                   {"name": "Pain Level", "datatype": "List", "inputType": "Dropdown",
-                       "isMandatory": False, "listItems": ["Mild", "Moderate", "Severe"]}
-               ]
-           }
-       ]
-   },
-   "Pushing/Delivery": {
-       "subcategories": [
-           {
-               "name": "FHR",
-               "datapoints": [
-                   {"name": "FHR Reading", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True}
-               ]
-           },
-           {
-               "name": "Contractions",
-               "datapoints": [
-                   {"name": "Contraction Frequency", "datatype": "Numeric",
-                       "inputType": "Textbox", "isMandatory": True}
-               ]
-           }
-       ]
-   }
+#    "Active Labor (5cm-8cm)": {
+#        "subcategories": [
+#            {
+#                "name": "Vitals",
+#                "datapoints": [
+#                    {"name": "HR", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True},
+#                    {"name": "Respirations", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True},
+#                    {"name": "Blood Pressure", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True},
+#                    {"name": "Pulse Ox", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True},
+#                    {"name": "Temperature", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True}
+#                ]
+#            },
+#            {
+#                "name": "Pain Management",
+#                "datapoints": [
+#                    {"name": "Pain Level", "datatype": "List", "inputType": "Dropdown",
+#                        "isMandatory": False, "listItems": ["Mild", "Moderate", "Severe"]}
+#                ]
+#            }
+#        ]
+#    },
+#    "Pushing/Delivery": {
+#        "subcategories": [
+#            {
+#                "name": "FHR",
+#                "datapoints": [
+#                    {"name": "FHR Reading", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True}
+#                ]
+#            },
+#            {
+#                "name": "Contractions",
+#                "datapoints": [
+#                    {"name": "Contraction Frequency", "datatype": "Numeric",
+#                        "inputType": "Textbox", "isMandatory": True}
+#                ]
+#            }
+#        ]
+#    }
 }
 
 # -------------------------
@@ -104,67 +104,67 @@ HARDCODED_CATEGORIES = {
 # -------------------------
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
-   data = request.json
-   cursor = db1.cursor()
-   try:
-       for category in data['categories']:
-           # Insert category
-           category_name = category['name'].strip()  # Remove any extra spaces
-           cursor.execute(
-               "SELECT id FROM categories WHERE name = %s", (category_name,))
-           result = cursor.fetchone()
+    data = request.json
+    cursor = db1.cursor()
+    try:
+        # Validate input
+        if not data or 'categories' not in data:
+            return jsonify({"error": "Invalid input format. 'categories' key is required."}), 400
 
+        for category in data['categories']:
+            # Remove any extra spaces from category name
+            category_name = category['name'].strip()
+            
+            # Insert category if not exists
+            cursor.execute(
+                "SELECT id FROM Categories WHERE name = %s", (category_name,))
+            result = cursor.fetchone()
 
-           if result is not None:
-               category_id = result[0]
-           else:
-               cursor.execute(
-                   "INSERT INTO categories (name) VALUES (%s)", (category_name,))
-               category_id = cursor.lastrowid  # Get the last inserted ID
+            if result is not None:
+                category_id = result[0]
+            else:
+                cursor.execute(
+                    "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
+                category_id = cursor.lastrowid
 
+            # Process subcategories if provided
+            if 'subcategories' in category:
+                for subcategory in category['subcategories']:
+                    subcategory_name = subcategory['name'].strip()
+                    cursor.execute(
+                        "INSERT INTO Subcategories (name, category_id) VALUES (%s, %s)", 
+                        (subcategory_name, category_id)
+                    )
+                    subcategory_id = cursor.lastrowid
 
-               # Check if the category is in HARDCODED_CATEGORIES
-               if category_name in HARDCODED_CATEGORIES:
-                   # Get the hardcoded subcategories for this category
-                   hardcoded_subcategories = HARDCODED_CATEGORIES[category_name]['subcategories']
+                    # Process datapoints if provided
+                    if 'datapoints' in subcategory:
+                        for datapoint in subcategory['datapoints']:
+                            datapoint_name = datapoint['name']
+                            data_type = datapoint['datatype'].lower()
+                            input_type = datapoint['inputType'].lower()
+                            is_mandatory = datapoint['isMandatory']
+                            cursor.execute(
+                                "INSERT INTO Datapoints (subcategory_id, name, data_type, input_type, is_mandatory) VALUES (%s, %s, %s, %s, %s)",
+                                (subcategory_id, datapoint_name, data_type, input_type, is_mandatory)
+                            )
+                            datapoint_id = cursor.lastrowid
 
+                            # Insert list items if data type is 'list'
+                            if data_type == 'list' and 'listItems' in datapoint:
+                                for item in datapoint['listItems']:
+                                    cursor.execute(
+                                        "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                                        (datapoint_id, item)
+                                    )
 
-                   # Add each subcategory
-                   for subcategory in hardcoded_subcategories:
-                       subcategory_name = subcategory['name']
-                       cursor.execute(
-                           "INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
-                       subcategory_id = cursor.lastrowid
+        # Commit all changes
+        db1.commit()
+        return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 200
 
-
-                       # Add datapoints for each subcategory
-                       for datapoint in subcategory['datapoints']:
-                           datapoint_name = datapoint['name']
-                           data_type = datapoint['datatype'].lower()
-                           is_mandatory = datapoint['isMandatory']
-                           cursor.execute(
-                               "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
-                               (subcategory_id, datapoint_name,
-                                data_type, is_mandatory)
-                           )
-                           datapoint_id = cursor.lastrowid
-
-
-                           # If the data type is List, save the list items
-                           if data_type == 'list':
-                               for item in datapoint.get('listItems', []):
-                                   cursor.execute(
-                                       "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
-                                       (datapoint_id, item)
-                                   )
-       # Commit all changes
-       db1.commit()
-       return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 200
-
-
-   except Exception as e:
-       db1.rollback()  # Rollback in case of error
-       return jsonify({"error": str(e)}), 400
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 400
 
 
 # -------------------------
@@ -364,7 +364,7 @@ def add_subcategories():
 
 
 # ------------------------
-# POST /get_subcategories
+# GET /subcategories
 # ------------------------
 # Return the subcategory with the subcategory_name, provided through a JSON File with the contents:"category_name":"<category_name>" "subcategory_name": "<subcategory_name>"
 
@@ -402,6 +402,29 @@ def get_subcategories():
        # Find subcategories for the given category
        cursor.execute("SELECT id, name FROM Subcategories WHERE category_id = %s", (category_id,))
        subcategories = cursor.fetchall()
+
+       for subcategory in subcategories:
+            subcategory_id = subcategory['id']
+            cursor.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+            datapoints = cursor.fetchall()
+
+            # Prepare datapoints list
+            subcategory['datapoints'] = []
+            for datapoint in datapoints:
+                datapoint_dict = {
+                    'name': datapoint['name'],
+                    'datatype': datapoint['data_type'],
+                    'inputType': datapoint['input_type'],
+                    'isMandatory': datapoint['is_mandatory']
+                }
+                datapoint_id = datapoint['id']
+                # If the datapoint has a data type of 'list', retrieve associated list values
+                if datapoint['data_type'].lower() == 'list':
+                    cursor.execute("SELECT * FROM ListValues WHERE datapoint_id = %s", (datapoint_id,))
+                    list_items = cursor.fetchall()
+                    datapoint_dict['listItems'] = [item['value'] for item in list_items]
+
+                subcategory['datapoints'].append(datapoint_dict)
 
 
        return jsonify({"subcategories": subcategories}), 200
