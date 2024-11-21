@@ -10,7 +10,7 @@ function TabNavigation({ selectedStage }) {
   const fetchFormData = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5002/api/subcategories?category_id=${selectedStage}`, {
-        method: 'GET', // Adjust to POST if the server requires stage in the request body
+        method: 'GET', 
         headers: {
           'Content-Type': 'application/json'
         },
@@ -30,7 +30,6 @@ function TabNavigation({ selectedStage }) {
     }
   }, [selectedStage]);
   
-  console.log(selectedStage);
 
   const saveFormData = (tabName, updatedData) => {
     setFormData((prevData) => ({

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import {  useParams,useLocation } from 'react-router-dom';
 import HeaderAndPatientInfo from './HeaderAndPatientInfo';
 import StageSelector from './StageSelector';
 import TabNavigation from './TabNavigation';
@@ -20,13 +20,15 @@ import './style.css';
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Title, Tooltip, Legend);
 
 function UserInterface() {
-  const [patientData, setPatientData] = useState({});
+  // const [patientData, setPatientData] = useState({});
   const [alerts, setAlerts] = useState([]);
   const [selectedStage, setSelectedStage] = useState();
+  const { patient_id } = useParams();
+  const [error, setError] = useState(null);
   //const [chartData, setChartData] = useState([]);
-
   const location = useLocation();
-  const { patientName } = location.state || {};
+  const { patient } = location.state || {}; 
+
   
   // Placeholder data for the chart
   const placeholderData = {
@@ -81,17 +83,28 @@ function UserInterface() {
   useEffect(() => {
     fetchPatientData();
     //fetchChartData();
-  }, []);
+  }, [patient_id]);
 
-  const fetchPatientData = async () => {
-    const response = await fetch('/api/patient-info'); // Example API endpoint
-    const data = await response.json();
-    setPatientData(data);
+  console.log(patient_id)
+    const fetchPatientData = async () => {
+      // cause backend dump
+      // try {
+      //   // Perform GET request to the API endpoint
+      //   const response = await fetch(`http://127.0.0.1:5002/api/patients/${patient_id}`);
+        
+      //   // Check if the response is successful
+      //   if (!response.ok) {
+      //     throw new Error(`Error fetching patient data: ${response.status} ${response.statusText}`);
+      //   }
 
-    if (data.bp > 140) {
-      setAlerts([...alerts, 'High Blood Pressure']);
-    }
-  };
+      //   // Parse JSON response
+      //   const data = await response.json();
+      //   console.log(data);
+      //   setPatientData(data); // Update the state with patient data
+      // } catch (error) {
+      //   setError(error.message); // Handle errors
+      // }
+    };
 
   // const fetchChartData = async () => {
   //   const response = await fetch('/api/chart-data'); // Example API endpoint for chart data
@@ -105,7 +118,7 @@ function UserInterface() {
   
   return (
     <div className="container">
-      <HeaderAndPatientInfo patient={patientData} patientName = {patientName}/>
+      <HeaderAndPatientInfo patient={patient}/>
 
       {/* Patient Monitoring Chart */}
       <div className="chart-container">

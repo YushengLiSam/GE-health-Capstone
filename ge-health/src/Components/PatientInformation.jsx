@@ -7,9 +7,9 @@ const PatientInformation = () => {
   const [patientData, setPatientData] = useState({
     name: '',
     age: '',
-    // dob: '',
     bed_number: '',
-    // fetalCount: '1', // default value for fetal count
+    dob: '',
+    fetal_count: 1, // default value for fetal count
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
@@ -49,15 +49,21 @@ const PatientInformation = () => {
       });
       
       if (response.ok) {
-        // If the data is stored successfully, navigate to the new page
-        navigate('/gallery');
+        const data = await response.json();
+
+        // Access the patient_id
+        console.log('Patient ID:', data.patient_id);
+  
+        // Navigate to the new page with the patient ID
+        navigate(`/admin/patient/${data.patient_id}`, {
+          state: { patient: patientData },
+        });
       } else {
         console.error('Error storing patient information');
       }
     } catch (error) {
       console.error('API error:', error);
     }
-    navigate('/admin/patient', { state: { patientName: patientData.name } });
   };
 
   return (
@@ -92,7 +98,7 @@ const PatientInformation = () => {
             />
           </div>
 
-          {/* <div className={styles.formField}>
+          <div className={styles.formField}>
             <label htmlFor="dob">DOB</label>
             <input
               type="date"
@@ -102,7 +108,7 @@ const PatientInformation = () => {
               className={styles.inputField}
               aria-label="Date of Birth"
             />
-          </div> */}
+          </div>
 
           <div className={styles.formField}>
             <label htmlFor="name">Bed Number</label>
@@ -117,17 +123,17 @@ const PatientInformation = () => {
             />
           </div>
 
-          {/* <div className={styles.formField}>
+          <div className={styles.formField}>
             <label htmlFor="dob">Fetal Count</label>
             <input
               type="number"
               id="fetalCount"
-              value={patientData.fetalCount}
+              value={patientData.fetal_count}
               onChange={handleChange}
               className={styles.inputField}
               aria-label="Fetal Count"
             />
-          </div> */}
+          </div>
 
           
           {/* Submit Button */}

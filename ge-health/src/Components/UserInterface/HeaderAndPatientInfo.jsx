@@ -1,10 +1,11 @@
 import React from 'react';
 
-function HeaderAndPatientInfo({ patient,patientName }) {
+function HeaderAndPatientInfo({ patient}) {
   return (
     <div className="header">
-      <h2>{patientName || 'Loading...'}</h2>
-      <p>Bed: {patient.bed}</p>
+      <h2>{patient.name || 'Loading...'}</h2>
+      <p>Bed: {patient.bed_number}</p>
+      <p>Age: {patient.age}</p>
       <p>BP: {patient.bp} mmHg</p>
     </div>
   );

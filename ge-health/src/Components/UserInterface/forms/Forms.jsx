@@ -9,9 +9,11 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
         setLocalFormData(formData);
       }, [formData]);
       const handleChange = (e, field) => {
+        const { type, checked, value, name } = e.target;
+      
         setLocalFormData((prevData) => ({
           ...prevData,
-          [field.name]: e.target.value
+          [name]: type === 'checkbox' ? checked : value, // Handle checkbox and other input types
         }));
       };
       const handleSave = () => {
@@ -50,6 +52,16 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
                   <option key={index} value={item}>{item}</option>
                 ))}
               </Form.Control>
+            ) : field.inputType === "checkbox" ? (
+              <Form.Check
+                type="checkbox"
+                name={field.name}
+                onChange={(e) => handleChange(e, field)}
+                checked={localFormData[field.name] || false}
+                required={field.isMandatory}
+                className="input-field"
+                label={field.label || 'Check this'}
+              />
             ) : null}
           </Form.Group>
         ))}
