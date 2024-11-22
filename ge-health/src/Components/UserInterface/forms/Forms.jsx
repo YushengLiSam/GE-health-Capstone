@@ -26,53 +26,62 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
   
     return (
       <Form onSubmit={handleSubmit}>
-        {datapoints.map((field) => (
-          <Form.Group className="mb-3 input-group" key={field.name} controlId={field.name}>
-            <Form.Label>{field.name}</Form.Label>
-            {field.inputType === "textbox" ? (
+        {datapoints.map((field, index) => (
+          <Form.Group
+            className="mb-3 input-group"
+            key={field?.name || index} // Fallback to index if name is not provided
+            controlId={field?.name || `field-${index}`} // Fallback controlId
+          >
+            <Form.Label>{field?.name || `Field ${index + 1}`}</Form.Label>
+            {field?.inputType === "textbox" ? (
               <Form.Control
                 type="text"
-                name={field.name}
+                name={field?.name || `field-${index}`}
                 onChange={(e) => handleChange(e, field)}
-                value={localFormData[field.name] || ''}
-                required={field.isMandatory}
+                value={localFormData[field?.name] || ''}
+                required={field?.isMandatory || false}
                 className="input-field"
               />
-            ) : field.inputType === "dropdown" ? (
+            ) : field?.inputType === "dropdown" ? (
               <Form.Control
                 as="select"
-                name={field.name}
+                name={field?.name || `field-${index}`}
                 onChange={(e) => handleChange(e, field)}
-                value={localFormData[field.name] || ''}
-                required={field.isMandatory}
+                value={localFormData[field?.name] || ''}
+                required={field?.isMandatory || false}
                 className="input-field"
               >
                 <option value="">Select an option</option>
-                {field.listItems.map((item, index) => (
-                  <option key={index} value={item}>{item}</option>
+                {(field?.listItems || []).map((item, idx) => (
+                  <option key={idx} value={item}>
+                    {item}
+                  </option>
                 ))}
               </Form.Control>
-            ) : field.inputType === "checkbox" ? (
+            ) : field?.inputType === "checkbox" ? (
               <Form.Check
                 type="checkbox"
-                name={field.name}
+                name={field?.name || `field-${index}`}
                 onChange={(e) => handleChange(e, field)}
-                checked={localFormData[field.name] || false}
-                required={field.isMandatory}
+                checked={localFormData[field?.name] || false}
+                required={field?.isMandatory || false}
                 className="input-field"
-                label={field.label || 'Check this'}
+                label={field?.label || 'Check this'}
               />
-            ) : null}
+            ) : (
+              <span>Unsupported field type</span>
+            )}
           </Form.Group>
         ))}
         <Button variant="primary" type="submit" className="form-button">
-        Submit
-      </Button>
-      <Button variant="secondary" onClick={handleSave} className="form-button">
-        Save
-      </Button>
+          Submit
+        </Button>
+        <Button variant="secondary" onClick={handleSave} className="form-button">
+          Save
+        </Button>
       </Form>
     );
+    
   }
   
   export default Forms;
