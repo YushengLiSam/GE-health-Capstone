@@ -230,10 +230,10 @@ function AnnotationBuilder() {
         })),
       })),
     }));
-  
+
     try {
       console.log('Saving data:', formattedData);
-  
+
       const response = await fetch('http://127.0.0.1:5002/api/categories', {
         method: 'POST',
         headers: {
@@ -241,7 +241,7 @@ function AnnotationBuilder() {
         },
         body: JSON.stringify({ categories: formattedData }),
       });
-  
+
       if (response.ok) {
         alert('Data saved successfully!');
       } else {
@@ -282,6 +282,13 @@ function AnnotationBuilder() {
         {categories.map((category, categoryIndex) => (
           <div key={categoryIndex} className={styles.category}>
             <div className={styles.categoryRow}>
+              {/* Up/Down Caret for Category */}
+              <div
+                className={`${styles.caretButton} ${foldedCategories[categoryIndex] ? styles.folded : ''}`}
+                onClick={() => toggleCategoryFold(categoryIndex)}
+              >
+                {foldedCategories[categoryIndex] ? '▼' : '▲'}
+              </div>
               <Creatable
                 options={categoryOptions}
                 value={category.selectedCategory ? { value: category.selectedCategory, label: category.selectedCategory } : null}
@@ -289,22 +296,39 @@ function AnnotationBuilder() {
                 placeholder="Select or create a category"
               />
               <button onClick={() => addSubcategory(categoryIndex)} className={styles.subcategoryButton}>Add Subcategory</button>
-              <button onClick={() => removeCategory(categoryIndex)} className={styles.categoryButton}>Remove Category</button>
-              <button onClick={() => toggleCategoryFold(categoryIndex)}>{foldedCategories[categoryIndex] ? 'Expand' : 'Collapse'}</button>
+              <button
+                className={styles.removeButton}
+                onClick={() => removeCategory(categoryIndex)}
+              >
+                <span className={styles.removeIcon}>✖</span>
+                REMOVE
+              </button>
             </div>
 
             {!foldedCategories[categoryIndex] && category.subcategories.map((subcategory, subcategoryIndex) => (
               <div key={subcategoryIndex} className={styles.subcategory}>
                 <div className={styles.subcategoryRow}>
+                  {/* Up/Down Caret for Subcategory */}
+                  <div
+                    className={`${styles.caretButton} ${foldedSubcategories[`${categoryIndex}-${subcategoryIndex}`] ? styles.folded : ''}`}
+                    onClick={() => toggleSubcategoryFold(categoryIndex, subcategoryIndex)}
+                  >
+                    {foldedSubcategories[`${categoryIndex}-${subcategoryIndex}`] ? '▼' : '▲'}
+                  </div>
                   <Creatable
                     options={subcategoryOptions}
                     value={subcategory.selectedSubcategory ? { value: subcategory.selectedSubcategory, label: subcategory.selectedSubcategory } : null}
                     onChange={(value) => handleSubcategoryChange(categoryIndex, subcategoryIndex, value)}
                     placeholder="Select or create a subcategory"
                   />
-                  <button onClick={() => removeSubcategory(categoryIndex, subcategoryIndex)}>Remove Subcategory</button>
-                  <button onClick={() => toggleSubcategoryFold(categoryIndex, subcategoryIndex)}>{foldedSubcategories[`${categoryIndex}-${subcategoryIndex}`] ? 'Expand' : 'Collapse'}</button>
                   <button onClick={() => addDatapoint(categoryIndex, subcategoryIndex)}>Add Datapoint</button>
+                  <button
+                    className={styles.removeButton}
+                    onClick={() => removeSubcategory(categoryIndex, subcategoryIndex)}
+                  >
+                    <span className={styles.removeIcon}>✖</span>
+                    REMOVE
+                  </button>
                 </div>
 
                 {!foldedSubcategories[`${categoryIndex}-${subcategoryIndex}`] && subcategory.datapoints.map((datapoint, datapointIndex) => (
@@ -329,15 +353,15 @@ function AnnotationBuilder() {
                     />
                     {datapoint.inputType === 'Dropdown' && (
                       <Creatable
-                      components={animatedComponents}
-                      isMulti
-                      options={datapoint.listItems?.map(item => ({ value: item, label: item }))}
-                      value={datapoint.listItems?.map(item => ({ value: item, label: item }))}
-                      onChange={(value) =>
-                        handleListItemsChange(categoryIndex, subcategoryIndex, datapointIndex, value)
-                      }
-                      placeholder="Add dropdown items"
-                    />
+                        components={animatedComponents}
+                        isMulti
+                        options={datapoint.listItems?.map(item => ({ value: item, label: item }))}
+                        value={datapoint.listItems?.map(item => ({ value: item, label: item }))}
+                        onChange={(value) =>
+                          handleListItemsChange(categoryIndex, subcategoryIndex, datapointIndex, value)
+                        }
+                        placeholder="Add dropdown items"
+                      />
                     )}
                     <label className={styles.mandatoryLabel}>
                       <input
@@ -347,7 +371,13 @@ function AnnotationBuilder() {
                       />
                       Mandatory
                     </label>
-                    <button onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}>Remove Datapoint</button>
+                    <button
+                      className={styles.removeButton}
+                      onClick={() => removeDatapoint(categoryIndex, subcategoryIndex, datapointIndex)}
+                    >
+                      <span className={styles.removeIcon}>✖</span>
+                      REMOVE
+                    </button>
                   </div>
                 ))}
               </div>
