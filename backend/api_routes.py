@@ -111,60 +111,87 @@ def add_categories():
         if not data or 'categories' not in data:
             return jsonify({"error": "Invalid input format. 'categories' key is required."}), 400
 
+        response_messages = []
+
         for category in data['categories']:
             # Remove any extra spaces from category name
             category_name = category['name'].strip()
             
             # Insert category if not exists
-            cursor.execute(
-                "SELECT id FROM Categories WHERE name = %s", (category_name,))
+            cursor.execute("SELECT id FROM Categories WHERE name = %s", (category_name,))
             result = cursor.fetchone()
 
             if result is not None:
                 category_id = result[0]
+                response_messages.append(f"Category '{category_name}' already exists.")
             else:
-                cursor.execute(
-                    "INSERT INTO Categories (name) VALUES (%s)", (category_name,))
+                cursor.execute("INSERT INTO Categories (name) VALUES (%s)", (category_name,))
                 category_id = cursor.lastrowid
+                response_messages.append(f"Category '{category_name}' added successfully.")
 
             # Process subcategories if provided
             if 'subcategories' in category:
                 for subcategory in category['subcategories']:
                     subcategory_name = subcategory['name'].strip()
                     cursor.execute(
-                        "INSERT INTO Subcategories (name, category_id) VALUES (%s, %s)", 
+                        "SELECT id FROM Subcategories WHERE name = %s AND category_id = %s", 
                         (subcategory_name, category_id)
                     )
-                    subcategory_id = cursor.lastrowid
+                    sub_result = cursor.fetchone()
+
+                    if sub_result is not None:
+                        subcategory_id = sub_result[0]
+                        response_messages.append(f"Subcategory '{subcategory_name}' already exists under category '{category_name}'.")
+                    else:
+                        cursor.execute(
+                            "INSERT INTO Subcategories (name, category_id) VALUES (%s, %s)", 
+                            (subcategory_name, category_id)
+                        )
+                        subcategory_id = cursor.lastrowid
+                        response_messages.append(f"Subcategory '{subcategory_name}' added successfully under category '{category_name}'.")
 
                     # Process datapoints if provided
                     if 'datapoints' in subcategory:
                         for datapoint in subcategory['datapoints']:
-                            datapoint_name = datapoint['name']
+                            datapoint_name = datapoint['name'].strip()
                             data_type = datapoint['datatype'].lower()
                             input_type = datapoint['inputType'].lower()
                             is_mandatory = datapoint['isMandatory']
+                            
                             cursor.execute(
-                                "INSERT INTO Datapoints (subcategory_id, name, data_type, input_type, is_mandatory) VALUES (%s, %s, %s, %s, %s)",
-                                (subcategory_id, datapoint_name, data_type, input_type, is_mandatory)
+                                "SELECT id FROM Datapoints WHERE name = %s AND subcategory_id = %s", 
+                                (datapoint_name, subcategory_id)
                             )
-                            datapoint_id = cursor.lastrowid
+                            dp_result = cursor.fetchone()
 
-                            # Insert list items if data type is 'list'
-                            if data_type == 'list' and 'listItems' in datapoint:
-                                for item in datapoint['listItems']:
-                                    cursor.execute(
-                                        "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
-                                        (datapoint_id, item)
-                                    )
+                            if dp_result is not None:
+                                datapoint_id = dp_result[0]
+                                response_messages.append(f"Datapoint '{datapoint_name}' already exists under subcategory '{subcategory_name}'.")
+                            else:
+                                cursor.execute(
+                                    "INSERT INTO Datapoints (subcategory_id, name, data_type, input_type, is_mandatory) VALUES (%s, %s, %s, %s, %s)",
+                                    (subcategory_id, datapoint_name, data_type, input_type, is_mandatory)
+                                )
+                                datapoint_id = cursor.lastrowid
+                                response_messages.append(f"Datapoint '{datapoint_name}' added successfully under subcategory '{subcategory_name}'.")
+
+                                # Insert list items if data type is 'list'
+                                if data_type == 'list' and 'listItems' in datapoint:
+                                    for item in datapoint['listItems']:
+                                        cursor.execute(
+                                            "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                                            (datapoint_id, item)
+                                        )
+                                    response_messages.append(f"List items for datapoint '{datapoint_name}' added successfully.")
 
         # Commit all changes
         db1.commit()
-        return jsonify({"message": "Categories, subcategories, and datapoints added successfully."}), 200
+        return jsonify({"message": response_messages}), 200
 
     except Exception as e:
         db1.rollback()  # Rollback in case of error
         return jsonify({"error": str(e)}), 400
+
 
 
 # -------------------------
@@ -298,69 +325,80 @@ def get_categories_with_details():
 # POST /subcategories
 # ------------------------
 
-
 @api_routes.route('/subcategories', methods=['POST'])
 def add_subcategories():
-   data = request.json
-   cursor = db1.cursor()
-   # categories = data.get('categories', [])
-   try:
-       category_name = data['category']
-       cursor.execute(
-           "SELECT id FROM categories WHERE name = %s", (category_name,))
-       result = cursor.fetchone()
-       if result is not None:
-           category_id = result[0]
+    data = request.json
+    cursor = db1.cursor()
+    response_messages = []
 
+    try:
+        category_name = data['category'].strip()
 
-       else:
-           cursor.execute(
-               "INSERT INTO categories (name) VALUES (%s)", (category_name,))
-           category_id = cursor.lastrowid  # Get the last inserted ID
+        # Check if category exists
+        cursor.execute("SELECT id FROM categories WHERE name = %s", (category_name,))
+        result = cursor.fetchone()
+        if result is not None:
+            category_id = result[0]
+            response_messages.append(f"Category '{category_name}' already exists.")
+        else:
+            cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category_name,))
+            category_id = cursor.lastrowid
+            response_messages.append(f"Category '{category_name}' added successfully.")
 
+        # Iterate over subcategories provided in the input
+        for subcategory in data['subcategory']:
+            subcategory_name = subcategory['name'].strip()
 
-       for subcategory in data['subcategory']:
-           # Remove any extra spaces
-           subcategory_name = subcategory['name'].strip()
-           print(subcategory_name)
-           print(category_id)  # all good
-           cursor.execute(
-               "SELECT id FROM subcategories WHERE category_id = %s AND name = %s", (category_id, subcategory_name))
-           result = cursor.fetchone()
-           if result is not None:
-               subcategory_id = result[0]
-           else:
-               cursor.execute(
-                   "INSERT INTO subcategories (name, category_id) VALUES (%s, %s)", (subcategory_name, category_id))
-               subcategory_id = cursor.lastrowid
+            # Check if subcategory exists specifically under the category
+            cursor.execute("SELECT id FROM subcategories WHERE category_id = %s AND name = %s",
+                           (category_id, subcategory_name))
+            subcategory_result = cursor.fetchone()
 
+            if subcategory_result is not None:
+                subcategory_id = subcategory_result[0]
+                response_messages.append(f"Subcategory '{subcategory_name}' already exists under category '{category_name}'.")
+            else:
+                # Insert subcategory if it does not exist
+                cursor.execute("INSERT INTO subcategories (name, category_id) VALUES (%s, %s)",
+                               (subcategory_name, category_id))
+                subcategory_id = cursor.lastrowid
+                response_messages.append(f"Subcategory '{subcategory_name}' added successfully under category '{category_name}'.")
 
-           for datapoint in subcategory['datapoints']:
+            # Process datapoints if provided
+            if 'datapoints' in subcategory:
+                for datapoint in subcategory['datapoints']:
+                    datapoint_name = datapoint['name'].lower()
+                    data_type = datapoint['datatype'].lower()
+                    is_mandatory = datapoint['isMandatory']
 
+                    # Check if datapoint already exists under the subcategory
+                    cursor.execute("SELECT id FROM Datapoints WHERE subcategory_id = %s AND name = %s",
+                                   (subcategory_id, datapoint_name))
+                    dp_result = cursor.fetchone()
+                    if dp_result is not None:
+                        datapoint_id = dp_result[0]
+                        response_messages.append(f"Datapoint '{datapoint_name}' already exists under subcategory '{subcategory_name}'.")
+                    else:
+                        cursor.execute("INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+                                       (subcategory_id, datapoint_name, data_type, is_mandatory))
+                        datapoint_id = cursor.lastrowid
+                        response_messages.append(f"Datapoint '{datapoint_name}' added successfully under subcategory '{subcategory_name}'.")
 
-               datapoint_name = datapoint['name'].lower()
-               data_type = datapoint['datatype'].lower()
-               is_mandatory = datapoint['isMandatory']
+                        # Insert list items if data type is 'list'
+                        if data_type == 'list' and 'listItems' in datapoint:
+                            for item in datapoint['listItems']:
+                                cursor.execute("INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                                               (datapoint_id, item))
+                            response_messages.append(f"List items for datapoint '{datapoint_name}' added successfully.")
 
+        # Commit all changes
+        db1.commit()
+        return jsonify({"message": response_messages}), 200
 
-               cursor.execute("INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)", (subcategory_id, datapoint_name, data_type, is_mandatory)
-                              )
-               datapoint_id = cursor.lastrowid
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": str(e)}), 602
 
-
-               # If the data type is List, save the list items
-               if data_type == 'list':
-                   for item in datapoint['listItems']:
-                       cursor.execute(
-                           "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)", (datapoint_id, item))
-       # Commit all changes
-       db1.commit()
-       return jsonify({"message": "Subcategories, and datapoints added successfully."}), 200
-
-
-   except Exception as e:
-       db1.rollback()  # Rollback in case of error
-       return jsonify({"error": str(e)}), 602
 
 
 # ------------------------
