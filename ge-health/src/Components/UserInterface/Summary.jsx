@@ -1,6 +1,7 @@
 import React from 'react';
+import {Button } from 'react-bootstrap';
 
-function Summary({ data, formData }) {
+function Summary({ data, formData, handleSubmit }) {
     return (
       <div className="summary">
         <h3>Summary</h3>
@@ -11,6 +12,9 @@ function Summary({ data, formData }) {
             </li>
           ))}
         </ul>
+        <Button variant="primary" type="submit" className="form-button" onClick={handleSubmit}>
+          Submit
+        </Button>
       </div>
     );
   }

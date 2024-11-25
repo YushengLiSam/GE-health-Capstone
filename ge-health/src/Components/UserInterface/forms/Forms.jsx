@@ -19,13 +19,10 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
       const handleSave = () => {
         saveFormData(tabName, localFormData);
       };
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      console.log(formData); // Replace with API call or state management logic
-    };
+    
   
     return (
-      <Form onSubmit={handleSubmit}>
+      <Form>
         {datapoints.map((field, index) => (
           <Form.Group
             className="mb-3 input-group"
@@ -73,9 +70,6 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
             )}
           </Form.Group>
         ))}
-        <Button variant="primary" type="submit" className="form-button">
-          Submit
-        </Button>
         <Button variant="secondary" onClick={handleSave} className="form-button">
           Save
         </Button>

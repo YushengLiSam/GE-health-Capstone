@@ -127,7 +127,7 @@ function UserInterface() {
 
       <StageSelector onStageSelect={handleStageSelect}/>
       <AlertDisplay alerts={alerts} />
-      <TabNavigation selectedStage={selectedStage}/>
+      <TabNavigation selectedStage={selectedStage} patient_id = {patient_id}/>
     </div>
   );
 }
