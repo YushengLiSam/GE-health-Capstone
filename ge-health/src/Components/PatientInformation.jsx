@@ -9,7 +9,7 @@ const PatientInformation = () => {
     age: '',
     bed_number: '',
     dob: '',
-    fetal_count: 1, // default value for fetal count
+    fetal_count: "1", // default value for fetal count
   });
 
   const [isFormValid, setIsFormValid] = useState(false);
@@ -124,10 +124,10 @@ const PatientInformation = () => {
           </div>
 
           <div className={styles.formField}>
-            <label htmlFor="dob">Fetal Count</label>
+            <label htmlFor="fetalCount">Fetal Count</label>
             <input
               type="number"
-              id="fetalCount"
+              id="fetal_count"
               value={patientData.fetal_count}
               onChange={handleChange}
               className={styles.inputField}
