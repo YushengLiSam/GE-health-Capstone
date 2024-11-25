@@ -195,4 +195,45 @@
       font-size: 14px;
     }
   }
+
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black */
+    border-radius: 50%; /* Circular background */
+    width: 24px; /* Smaller size */
+    height: 24px;
+    transform: translateY(-50%); /* Center vertically */
+  }
+  
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 5%; /* Reduce width to avoid overlapping the chart */
+  }
+  
+  .carousel-control-prev-icon:hover,
+  .carousel-control-next-icon:hover {
+    background-color: rgba(0, 0, 0, 0.9); /* Darker on hover */
+  }
+  
+  .carousel-control-prev {
+    left: -35px; /* Move left arrow outside */
+  }
+  
+  .carousel-control-next {
+    right: -35px; /* Move right arrow outside */
+  }
+
+  .carousel-indicators [data-bs-target] {
+    background-color: grey; /* Default color for unselected indicators */
+    width: 12px;
+    height: 12px;
+    border-radius: 50%; /* Make the indicators circular */
+    transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition */
+  }
+  
+  .carousel-indicators [data-bs-target].active {
+    background-color: black; /* Black color for the selected indicator */
+    transform: scale(1.2); /* Slightly enlarge the active indicator */
+  }
+  
   
