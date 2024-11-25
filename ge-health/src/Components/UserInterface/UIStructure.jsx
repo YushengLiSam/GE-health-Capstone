@@ -5,6 +5,8 @@ import StageSelector from './StageSelector';
 import TabNavigation from './TabNavigation';
 import AlertDisplay from './AlertDisplay';
 import { Line } from 'react-chartjs-2';
+import { Carousel } from 'react-bootstrap'; // Import Carousel
+import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap styles
 import {
   Chart as ChartJS,
   LineElement,
@@ -28,56 +30,36 @@ function UserInterface() {
   //const [chartData, setChartData] = useState([]);
   const location = useLocation();
   const { patient } = location.state || {}; 
+  const fetal_count = patient?.fetal_count || 1; // Replace with dynamic data when available
+  console.log("fetal count is: ", fetal_count);
 
   
-  // Placeholder data for the chart
-  const placeholderData = {
-    labels: ['10:10', '10:15', '10:20', '10:25', '10:30', '10:35'],
-    datasets: [
-      {
-        label: 'Heart Rate (bpm)',
-        data: [75, 80, 78, 82, 85, 83],
-        borderColor: 'rgba(75, 192, 192, 1)',
-        backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderWidth: 2,
-        tension: 0.4,
-      },
-      {
-        label: 'Blood Pressure (mmHg)',
-        data: [120, 125, 122, 130, 128, 127],
-        borderColor: 'rgba(255, 99, 132, 1)',
-        backgroundColor: 'rgba(255, 99, 132, 0.2)',
-        borderWidth: 2,
-        tension: 0.4,
-      },
-      {
-        label: 'SpO2 (%)',
-        data: [98, 97, 99, 97, 98, 96],
-        borderColor: 'rgba(54, 162, 235, 1)',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        borderWidth: 2,
-        tension: 0.4,
-      },
-    ],
-  };
+  // State for charts
+  const [momData, setMomData] = useState(generateRandomData('mom'));
+  const [fetusData, setFetusData] = useState(
+    Array.from({ length: fetal_count }, () => generateRandomData('fetus'))
+  );
 
-  const options = {
+  const options = (title) => ({
     responsive: true,
     plugins: {
-      legend: {
-        position: 'top',
-      },
-      title: {
-        display: true,
-        text: 'Placeholder Patient Monitoring Chart',
-      },
+      legend: { position: 'top' },
+      title: { display: true, text: title },
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-      },
-    },
-  };
+    scales: { y: { beginAtZero: true } },
+  });
+
+  // Update data every 3 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMomData((prevData) => updateRandomData(prevData, 'mom'));
+      setFetusData((prevData) =>
+        prevData.map((data) => updateRandomData(data, 'fetus'))
+      );
+    }, 3000); // 3-second interval
+
+    return () => clearInterval(interval);
+  }, [fetal_count]);
 
   // Fetch patient data and monitor for alerts
   useEffect(() => {
@@ -118,18 +100,92 @@ function UserInterface() {
   
   return (
     <div className="container">
-      <HeaderAndPatientInfo patient={patient}/>
+      <HeaderAndPatientInfo patient={patient} />
 
-      {/* Patient Monitoring Chart */}
+      {/* Patient Monitoring Charts */}
       <div className="chart-container">
-        <Line data={placeholderData} options={options} />
+        <Carousel interval={null}>
+          {/* Mom's Chart */}
+          <Carousel.Item>
+            <div className="chart">
+              <Line data={momData} options={options("Mom's Monitoring Chart")} />
+            </div>
+          </Carousel.Item>
+
+          {/* Fetus Charts */}
+          {fetusData.map((data, index) => (
+            <Carousel.Item key={index}>
+              <div className="chart">
+                <Line
+                  data={data}
+                  options={options(`Fetus ${index + 1} Monitoring Chart`)}
+                />
+              </div>
+            </Carousel.Item>
+          ))}
+        </Carousel>
       </div>
 
-      <StageSelector onStageSelect={handleStageSelect}/>
+      <StageSelector onStageSelect={handleStageSelect} />
       <AlertDisplay alerts={alerts} />
-      <TabNavigation selectedStage={selectedStage} patient_id = {patient_id}/>
+      <TabNavigation selectedStage={selectedStage} patient_id={patient_id} />
     </div>
   );
 }
 
 export default UserInterface;
+
+// Helper functions
+function generateRandomData(type) {
+  const labels = generateTimestamps(200); // Generate 200 timestamps for 10 minutes
+  const datasets = [
+    {
+      label: `${type === 'mom' ? 'Heart Rate (bpm)' : 'Fetal Heart Rate (bpm)'}`,
+      data: Array.from({ length: 200 }, () => getRandomValue(60, 100)), // 200 random points
+      borderColor: 'rgba(75, 192, 192, 1)',
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderWidth: 2,
+      tension: 0.4,
+    },
+  ];
+
+  if (type === 'mom') {
+    datasets.push({
+      label: 'Blood Pressure (mmHg)',
+      data: Array.from({ length: 200 }, () => getRandomValue(110, 130)), // 200 random points
+      borderColor: 'rgba(255, 99, 132, 1)',
+      backgroundColor: 'rgba(255, 99, 132, 0.2)',
+      borderWidth: 2,
+      tension: 0.4,
+    });
+  }
+
+  return { labels, datasets };
+}
+
+function updateRandomData(data, type) {
+  const newTimestamp = new Date().toLocaleTimeString(); // Generate new timestamp
+  const updatedLabels = [...data.labels.slice(1), newTimestamp]; // Retain last 200 labels
+  const updatedDatasets = data.datasets.map((dataset) => ({
+    ...dataset,
+    data: [...dataset.data.slice(1), getRandomValue(60, type === 'mom' ? 100 : 120)], // New value at the end
+  }));
+
+  return { labels: updatedLabels, datasets: updatedDatasets };
+}
+
+function generateTimestamps(count) {
+  const now = new Date();
+  const timestamps = [];
+
+  for (let i = 0; i < count; i++) {
+    const time = new Date(now - (count - 1 - i) * 3000); // Subtract 3-second intervals
+    timestamps.push(time.toLocaleTimeString());
+  }
+
+  return timestamps;
+}
+
+function getRandomValue(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
