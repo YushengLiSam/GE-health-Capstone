@@ -14,25 +14,35 @@ import './App.css';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName,setUserName] = useState();
 
   useEffect(() => {
-    const loggedInStatus = localStorage.getItem('isLoggedIn') === 'true';
+    const loggedInStatus = sessionStorage.getItem('isLoggedIn') === 'true';
+    // const userId = sessionStorage.getItem('userID');
     setIsLoggedIn(loggedInStatus);
+    // if (userId) {
+    //   setUserId(userId); // Assume there's a state for userId
+    // }
   }, []);
 
   const handleLogin = () => {
+    const userName = sessionStorage.getItem('userName');
+    if (userName) {
+        setUserName(userName); // Assume there's a state for userId
+      }
     setIsLoggedIn(true);
-    localStorage.setItem('isLoggedIn', 'true');
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.removeItem('userID');
+    sessionStorage.removeItem('userName');
   };
 
   const AdminPanel = () => (
     <div className="Config">
-      <TopBar onLogout={handleLogout} />
+      <TopBar user_name={userName} onLogout={handleLogout} />
       <div className="sidebar-container">
         <Sidebar />
       </div>
@@ -49,7 +59,7 @@ function App() {
     </div>
   );
 
-  console.log(localStorage.getItem('isLoggedIn'));
+  // console.log(localStorage.getItem('isLoggedIn'));
   // useEffect(() => {
   //   const loggedInStatus = localStorage.getItem('isLoggedIn');
   //   console.log("Initial loggedInStatus from localStorage:", loggedInStatus);

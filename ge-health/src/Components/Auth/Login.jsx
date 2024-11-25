@@ -5,11 +5,32 @@ import './Auth.css';
 function Login({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    onLogin(); // Call the login handler passed as a prop
+    try {
+      const response = await fetch('http://127.0.0.1:5002/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      console.log(username);
+      const data = await response.json();
+      if (response.ok) {
+        const userID = data.userID; // Pass userID to update sessionStorage
+        const userName = data.username;
+        
+        sessionStorage.setItem('isLoggedIn', 'true');
+        sessionStorage.setItem('userID', userID);
+        sessionStorage.setItem('userName', userName);
+        onLogin();
+      } else {
+        console.error(data.error || "Login failed");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+    // Call the login handler passed as a prop (if necessary for parent component updates)
   };
 
   return (

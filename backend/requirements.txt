@@ -1,3 +1,4 @@
 Flask==3.0.3
 mysql-connector-python==8.0.33  # Use the latest compatible version
 flask-cors==3.0.10
+bcrypt
