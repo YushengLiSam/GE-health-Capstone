@@ -33,13 +33,13 @@ function UserInterface() {
   const fetal_count = patient?.fetal_count || 1; // Replace with dynamic data when available
   console.log("fetal count is: ", fetal_count);
 
-  
   // State for charts
-  const [momData, setMomData] = useState(generateRandomData('mom'));
+  const [momData, setMomData] = useState(generatePlaceholderData('mom'));
   const [fetusData, setFetusData] = useState(
-    Array.from({ length: fetal_count }, () => generateRandomData('fetus'))
+    Array.from({ length: fetal_count }, () => generatePlaceholderData('fetus'))
   );
 
+  // Chart options
   const options = (title) => ({
     responsive: true,
     plugins: {
@@ -136,27 +136,31 @@ function UserInterface() {
 export default UserInterface;
 
 // Helper functions
-function generateRandomData(type) {
+function generatePlaceholderData(type) {
   const labels = generateTimestamps(200); // Generate 200 timestamps for 10 minutes
   const datasets = [
     {
       label: `${type === 'mom' ? 'Heart Rate (bpm)' : 'Fetal Heart Rate (bpm)'}`,
-      data: Array.from({ length: 200 }, () => getRandomValue(60, 100)), // 200 random points
+      data: Array.from({ length: 200 }, () => getRandomValue(60, 100)), // Random heart rate
       borderColor: 'rgba(75, 192, 192, 1)',
-      backgroundColor: 'rgba(75, 192, 192, 0.2)',
       borderWidth: 2,
-      tension: 0.4,
+      tension: 0.3, // Smooth lines
+      pointRadius: 0, // Invisible nodes
+      pointHoverRadius: 0, // No hover effect
+      fill: false, // No fill under the line
     },
   ];
 
   if (type === 'mom') {
     datasets.push({
       label: 'Blood Pressure (mmHg)',
-      data: Array.from({ length: 200 }, () => getRandomValue(110, 130)), // 200 random points
+      data: Array.from({ length: 200 }, () => getRandomValue(110, 130)), // Random blood pressure
       borderColor: 'rgba(255, 99, 132, 1)',
-      backgroundColor: 'rgba(255, 99, 132, 0.2)',
       borderWidth: 2,
-      tension: 0.4,
+      tension: 0.3,
+      pointRadius: 0,
+      pointHoverRadius: 0,
+      fill: false,
     });
   }
 
@@ -168,7 +172,10 @@ function updateRandomData(data, type) {
   const updatedLabels = [...data.labels.slice(1), newTimestamp]; // Retain last 200 labels
   const updatedDatasets = data.datasets.map((dataset) => ({
     ...dataset,
-    data: [...dataset.data.slice(1), getRandomValue(60, type === 'mom' ? 100 : 120)], // New value at the end
+    data: [
+      ...dataset.data.slice(1),
+      getRandomValue(60, type === 'mom' ? 100 : 120), // Append new value
+    ],
   }));
 
   return { labels: updatedLabels, datasets: updatedDatasets };
