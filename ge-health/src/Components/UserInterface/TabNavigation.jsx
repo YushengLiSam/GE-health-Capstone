@@ -3,14 +3,14 @@ import { Tabs, Tab } from 'react-bootstrap';
 import Forms from './forms/Forms';
 import Summary from './Summary';
 
-function TabNavigation({ selectedStage }) {
+function TabNavigation({ selectedStage,patient_id }) {
   const [activeKey, setActiveKey] = useState(''); // Controls the active tab
   const [formData, setFormData] = useState({});
   const [tabsData, setTabsData] = useState([]);
   const fetchFormData = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5002/api/subcategories?category_id=${selectedStage}`, {
-        method: 'GET', // Adjust to POST if the server requires stage in the request body
+        method: 'GET', 
         headers: {
           'Content-Type': 'application/json'
         },
@@ -30,7 +30,6 @@ function TabNavigation({ selectedStage }) {
     }
   }, [selectedStage]);
   
-  console.log(selectedStage);
 
   const saveFormData = (tabName, updatedData) => {
     setFormData((prevData) => ({
@@ -38,6 +37,42 @@ function TabNavigation({ selectedStage }) {
       [tabName]: updatedData
     }));
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const submissionData = [];
+
+    // Iterate over tabsData and formData to construct submission payload
+    tabsData.forEach((tab) => {
+        const tabFormData = formData[tab.name] || {}; // Get form data for the current tab
+        tab.datapoints.forEach((datapoint) => {
+            const value = tabFormData[datapoint.name]; // Check if there's data for the datapoint
+            if (value) {
+                submissionData.push({
+                    patient_id: patient_id,
+                    datapoint_id: datapoint.id,
+                    data: value
+                });
+            }
+        });
+    });
+    console.log(submissionData);
+
+    try {
+        const response = await fetch('http://127.0.0.1:5002/api/patient_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(submissionData), // Send array of datapoints with data
+        });
+        const result = await response.json();
+        alert("Data submitted successfully!", result);
+    } catch (error) {
+        console.error("Error submitting data:", error);
+    }
+};
 
   return (
     <div className="tab-navigation">
@@ -62,6 +97,7 @@ function TabNavigation({ selectedStage }) {
                 className = "summary"
                   data={tab}
                   formData={formData[tab.name] || {}}
+                  handleSubmit={handleSubmit}
                 />
               </div>
             )}

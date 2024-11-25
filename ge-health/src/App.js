@@ -43,7 +43,7 @@ function App() {
           <Route path="users-roles" element={<UsersRoles />} />
           <Route path="patient-info" element={<PatientList />} />
           <Route path="add-patient" element={<PatientInformation />} />
-          <Route path="patient/:id" element={<UserInterface />} />
+          <Route path="patient/:patient_id" element={<UserInterface />} />
         </Routes>
       </div>
     </div>

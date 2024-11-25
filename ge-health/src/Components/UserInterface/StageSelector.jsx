@@ -7,15 +7,20 @@ function StageSelector({ onStageSelect }) {
 
   const [stages,setStages] = useState([]);
 
-  useEffect(() => {
-    fetch('http://127.0.0.1:5002/api/categories') // Replace with your API endpoint
-      .then(response => response.json())
-      .then((data) => {
-        setStages(data.categories);
-        console.log(data.categories)
-      })
-      .catch(error => console.error('Error fetching stages:', error));
-  }, []);
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:5002/api/categories'); // Replace with your API endpoint
+      const data = await response.json();
+      setStages(data.categories); // Assuming setStages is defined
+      console.log(data.categories);
+    } catch (error) {
+      console.error('Error fetching stages:', error);
+    }
+  }
+
+    useEffect(() => {
+      fetchCategories()
+     }, []);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);

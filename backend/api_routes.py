@@ -269,6 +269,7 @@ def get_categories_with_details():
 
                for datapoint in datapoints:
                    datapoint_dict = {
+                       'id': datapoint['id'],
                        'name': datapoint['name'],
                        'datatype': datapoint['data_type'],
                        'isMandatory': datapoint['is_mandatory']
@@ -412,6 +413,7 @@ def get_subcategories():
             subcategory['datapoints'] = []
             for datapoint in datapoints:
                 datapoint_dict = {
+                    'id':datapoint['id'],
                     'name': datapoint['name'],
                     'datatype': datapoint['data_type'],
                     'inputType': datapoint['input_type'],
@@ -739,24 +741,43 @@ def get_operands():
         "data": "<data_value>"
     }
 """
-@api_routes.route('/patient_data', methods=['POST'])
+# @api_routes.route('/patient_data', methods=['POST'])
+# def add_patient_data():
+#     data = request.json
+#     cursor = db1.cursor()
+#     try:
+#         patient_id = data['patient_id']
+#         datapoint_id = data['datapoint_id']
+#         value = data['data']
+        
+#         cursor.execute(
+#             "INSERT INTO PatientData (patient_id, datapoint_id, data) VALUES (%s, %s, %s)",
+#             (patient_id, datapoint_id, value)
+#         )
+#         db1.commit()
+#         return jsonify({"message": "Patient data added successfully."}), 200
+#     except Exception as e:
+#         db1.rollback()  # Rollback in case of error
+#         return jsonify({"error": str(e)}), 400
 
+@api_routes.route('/patient_data', methods=['POST'])
 def add_patient_data():
-    data = request.json
+    data = request.json  # Expecting an array of objects
     cursor = db1.cursor()
     try:
-        patient_id = data['patient_id']
-        datapoint_id = data['datapoint_id']
-        value = data['data']
-        
-        cursor.execute(
-            "INSERT INTO PatientData (patient_id, datapoint_id, data) VALUES (%s, %s, %s)",
-            (patient_id, datapoint_id, value)
-        )
-        db1.commit()
-        return jsonify({"message": "Patient data added successfully."}), 200
+        for record in data:
+            patient_id = record['patient_id']
+            datapoint_id = record['datapoint_id']
+            value = record['data']
+            
+            cursor.execute(
+                "INSERT INTO PatientData (patient_id, datapoint_id, data) VALUES (%s, %s, %s)",
+                (patient_id, datapoint_id, value)
+            )
+        db1.commit()  # Commit all records at once
+        return jsonify({"message": "All patient data added successfully."}), 200
     except Exception as e:
-        db1.rollback()  # Rollback in case of error
+        db1.rollback()  # Rollback in case of any error
         return jsonify({"error": str(e)}), 400
 
 # ------------------------
