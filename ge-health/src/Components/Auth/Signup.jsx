@@ -8,7 +8,7 @@ function Signup() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
@@ -16,9 +16,25 @@ function Signup() {
       return;
     }
 
-    // Direct navigation for now; can be replaced with actual signup API call
-    alert("Signup successful! You can now log in.");
-    navigate('/login');
+    try {
+      const response = await fetch('http://127.0.0.1:5002/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Signup successful! You can now log in.");
+        navigate('/login'); // Redirect to login page after successful signup
+      } else {
+        alert(data.Error || "Signup failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred. Please try again.");
+    }
   };
 
   return (

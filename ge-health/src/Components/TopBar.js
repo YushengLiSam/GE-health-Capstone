@@ -2,7 +2,7 @@
 import React from 'react';
 import './TopBar.css';
 
-function TopBar({ onLogout }) {
+function TopBar({ user_name,onLogout }) {
   return (
     <div className="top-bar">
       <div className="logo-section">
@@ -10,7 +10,7 @@ function TopBar({ onLogout }) {
         <span className="title">Configuration Demo</span>
       </div>
       <div className="account-section">
-        <span className="account-info">admin, dcs</span>
+        <span className="account-info">Welcome, {user_name}!</span>
         <button className="logout-button" onClick={onLogout}>Logout</button>
       </div>
     </div>

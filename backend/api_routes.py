@@ -3,6 +3,7 @@ import mysql.connector
 import json
 import os
 from flask_cors import CORS
+import bcrypt
 
 
 
@@ -538,10 +539,10 @@ def get_static_categories_with_details():
        return jsonify({"error": str(e)}), 605
 
 # -------------------------
-# POST /signin
+# POST /signup
 # data is given in json: { username: <username>, password: <password> }
 # -------------------------
-@api_routes.route('/signin', methods=['POST'])
+@api_routes.route('/signup', methods=['POST'])
 def add_user():
     data = request.json
     cursor = db1.cursor()
@@ -560,11 +561,18 @@ def add_user():
         if user:
             return jsonify({"Error": "Username already exists"}), 400
 
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        cursor.execute("INSERT INTO User (username, password) VALUES (%s)", (username,hashed_password))
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        cursor.execute("INSERT INTO User (username, password) VALUES (%s, %s)", (username, hashed_password))
         db1.commit()
+
+        # Retrieve the new user's ID
+        cursor.execute("SELECT user_id FROM User WHERE username = %s", (username,))
+        new_user_id = cursor.fetchone()[0]
+
+        return jsonify({"message": "User created successfully", "userID": new_user_id}), 201
     except Exception as e:
-         return jsonify({"error":str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
         
 # -------------------------
 # POST /login
@@ -574,23 +582,26 @@ def add_user():
 def login_user():
     data = request.json
     cursor = db1.cursor()
-    try: 
+    try:
         username = data['username']
         password = data['password']
+
         if not username or not password:
-            return jsonify({"Error": "Username is required"}), 400
-        cursor.execute("SELECT password FROM User WHERE username = %s", (username,))
+            return jsonify({"Error": "Username and Password are required"}), 400
+
+        cursor.execute("SELECT user_id, password FROM User WHERE username = %s", (username,))
         user = cursor.fetchone()
         if not user:
-            return jsonify({"error":"Invalid username or password"}), 400
-
-        stored_password_hash = user[0]
-        if not bcrypt.check_password_hash(stored_password_hash, password):
             return jsonify({"error": "Invalid username or password"}), 400
 
-        return jsonify({"message": "Login successful", "username": username}), 200
+        user_id, stored_password_hash = user
+        if not bcrypt.checkpw(password.encode('utf-8'), stored_password_hash.encode('utf-8')):
+            return jsonify({"Error": "Invalid username or password"}), 400
+
+        return jsonify({"message": "Login successful", "username": username, "userID": user_id}), 200
     except Exception as e:
-        return jsonify({"error":str(e)}), 500
+        return jsonify({"error": str(e)}), 500
+
 
 # ------------------------
 # POST /get_user
