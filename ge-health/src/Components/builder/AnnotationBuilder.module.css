@@ -188,3 +188,53 @@ button:hover {
 .cancel:hover {
   background-color: #554087;
 }
+
+.caretButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; /* Square dimensions */
+  height: 24px;
+  border: 1px solid #ccc; /* Border around the square */
+  border-radius: 4px; /* Optional for rounded corners */
+  background-color: #f9f9f9; /* Light background */
+  cursor: pointer;
+  margin-right: 8px; /* Spacing from the dropdown */
+  font-size: 12px; /* Icon size */
+  font-weight: bold;
+  color: #333; /* Icon color */
+}
+
+.caretButton:hover {
+  background-color: #e0e0e0; /* Darker background on hover */
+}
+
+.caretButton.folded {
+  background-color: #fff; /* Optional for folded state */
+}
+
+.removeButton {
+  background-color: #d9534f; /* Bootstrap Danger red color */
+  color: white;
+  border: none;
+  border-radius: 8px; /* Rounded corners */
+  padding: 6px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px; /* Space between icon and text */
+  font-size: 14px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Slight shadow for depth */
+  margin-left: auto; /* Push to the rightmost side */
+}
+
+.removeButton:hover {
+  background-color: #c9302c; /* Darker red on hover */
+}
+
+.removeIcon {
+  font-size: 16px;
+}
+
+
