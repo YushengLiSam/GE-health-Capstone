@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import {  useParams,useLocation } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import HeaderAndPatientInfo from './HeaderAndPatientInfo';
 import StageSelector from './StageSelector';
 import TabNavigation from './TabNavigation';
 import AlertDisplay from './AlertDisplay';
 import { Line } from 'react-chartjs-2';
 import { Carousel } from 'react-bootstrap'; // Import Carousel
-import 'bootstrap/dist/css/bootstrap.min.css'; // Bootstrap styles
+import './carousel.css';
 import {
   Chart as ChartJS,
   LineElement,
@@ -29,17 +29,19 @@ function UserInterface() {
   const [error, setError] = useState(null);
   //const [chartData, setChartData] = useState([]);
   const location = useLocation();
-  const { patient } = location.state || {}; 
+  const { patient } = location.state || {};
   const fetal_count = patient?.fetal_count || 1; // Replace with dynamic data when available
   console.log("fetal count is: ", fetal_count);
 
-  // State for charts
   const [momData, setMomData] = useState(generatePlaceholderData('mom'));
   const [fetusData, setFetusData] = useState(
     Array.from({ length: fetal_count }, () => generatePlaceholderData('fetus'))
   );
 
-  // Chart options
+  // Carousel active state
+  const [activeIndex, setActiveIndex] = useState(0);
+  const totalSlides = 1 + fetal_count; // Mom chart + fetus charts
+
   const options = (title) => ({
     responsive: true,
     plugins: {
@@ -49,17 +51,28 @@ function UserInterface() {
     scales: { y: { beginAtZero: true } },
   });
 
-  // Update data every 3 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setMomData((prevData) => updateRandomData(prevData, 'mom'));
       setFetusData((prevData) =>
         prevData.map((data) => updateRandomData(data, 'fetus'))
       );
-    }, 3000); // 3-second interval
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [fetal_count]);
+
+  const handleNext = () => {
+    setActiveIndex((prevIndex) => (prevIndex + 1) % totalSlides);
+  };
+
+  const handlePrev = () => {
+    setActiveIndex((prevIndex) => (prevIndex - 1 + totalSlides) % totalSlides);
+  };
+
+  const handleIndicatorClick = (index) => {
+    setActiveIndex(index);
+  };
 
   // Fetch patient data and monitor for alerts
   useEffect(() => {
@@ -68,25 +81,25 @@ function UserInterface() {
   }, [patient_id]);
 
   console.log(patient_id)
-    const fetchPatientData = async () => {
-      // cause backend dump
-      // try {
-      //   // Perform GET request to the API endpoint
-      //   const response = await fetch(`http://127.0.0.1:5002/api/patients/${patient_id}`);
-        
-      //   // Check if the response is successful
-      //   if (!response.ok) {
-      //     throw new Error(`Error fetching patient data: ${response.status} ${response.statusText}`);
-      //   }
+  const fetchPatientData = async () => {
+    // cause backend dump
+    // try {
+    //   // Perform GET request to the API endpoint
+    //   const response = await fetch(`http://127.0.0.1:5002/api/patients/${patient_id}`);
 
-      //   // Parse JSON response
-      //   const data = await response.json();
-      //   console.log(data);
-      //   setPatientData(data); // Update the state with patient data
-      // } catch (error) {
-      //   setError(error.message); // Handle errors
-      // }
-    };
+    //   // Check if the response is successful
+    //   if (!response.ok) {
+    //     throw new Error(`Error fetching patient data: ${response.status} ${response.statusText}`);
+    //   }
+
+    //   // Parse JSON response
+    //   const data = await response.json();
+    //   console.log(data);
+    //   setPatientData(data); // Update the state with patient data
+    // } catch (error) {
+    //   setError(error.message); // Handle errors
+    // }
+  };
 
   // const fetchChartData = async () => {
   //   const response = await fetch('/api/chart-data'); // Example API endpoint for chart data
@@ -97,33 +110,54 @@ function UserInterface() {
   const handleStageSelect = (stage) => {
     setSelectedStage(stage); // Update selected stage
   };
-  
+
   return (
     <div className="container">
       <HeaderAndPatientInfo patient={patient} />
 
       {/* Patient Monitoring Charts */}
       <div className="chart-container">
-        <Carousel interval={null}>
-          {/* Mom's Chart */}
-          <Carousel.Item>
-            <div className="chart">
-              <Line data={momData} options={options("Mom's Monitoring Chart")} />
-            </div>
-          </Carousel.Item>
-
-          {/* Fetus Charts */}
-          {fetusData.map((data, index) => (
-            <Carousel.Item key={index}>
+        <div className="carousel">
+          <div className="carousel-inner">
+            {/* Mom's Chart */}
+            <div className={`carousel-item ${activeIndex === 0 ? 'active' : ''}`}>
               <div className="chart">
-                <Line
-                  data={data}
-                  options={options(`Fetus ${index + 1} Monitoring Chart`)}
-                />
+                <Line data={momData} options={options("Mom's Monitoring Chart")} />
               </div>
-            </Carousel.Item>
-          ))}
-        </Carousel>
+            </div>
+
+            {/* Fetus Charts */}
+            {fetusData.map((data, index) => (
+              <div
+                className={`carousel-item ${activeIndex === index + 1 ? 'active' : ''}`}
+                key={index}
+              >
+                <div className="chart">
+                  <Line data={data} options={options(`Fetus ${index + 1} Monitoring Chart`)} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Carousel Controls */}
+          <button className="carousel-control-prev" onClick={handlePrev}>
+            <span aria-hidden="true">&lt;</span>
+          </button>
+          <button className="carousel-control-next" onClick={handleNext}>
+            <span aria-hidden="true">&gt;</span>
+          </button>
+
+          {/* Carousel Indicators */}
+          <div className="carousel-indicators">
+            {[...Array(totalSlides).keys()].map((index) => (
+              <button
+                key={index}
+                className={activeIndex === index ? 'active' : ''}
+                onClick={() => handleIndicatorClick(index)}
+              ></button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <StageSelector onStageSelect={handleStageSelect} />
