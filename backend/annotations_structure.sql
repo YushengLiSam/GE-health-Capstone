@@ -285,6 +285,32 @@ LOCK TABLES `User` WRITE;
 INSERT INTO `User` VALUES (0,'nurseA','passwordA'),(1,'nurseB','passwordB');
 /*!40000 ALTER TABLE `User` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `UserAnnotations`
+--
+
+DROP TABLE IF EXISTS `UserAnnotations`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `UserAnnotations` (
+  `user_id` int NOT NULL,
+  `annotation_id` int NOT NULL,
+  PRIMARY KEY (`user_id`, `annotation_id`),
+  CONSTRAINT `user_annotations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `user_annotations_ibfk_2` FOREIGN KEY (`annotation_id`) REFERENCES `Annotation`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `UserAnnotations`
+--
+
+LOCK TABLES `UserAnnotations` WRITE;
+/*!40000 ALTER TABLE `UserAnnotations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `UserAnnotations` ENABLE KEYS */;
+UNLOCK TABLES;
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
