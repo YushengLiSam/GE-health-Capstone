@@ -1004,7 +1004,7 @@ def get_annotations():
 def get_annotation_by_id(user_id):
     cursor = db1.cursor(dictionary=True)
     try: 
-        cursor.execute("SELECT * FROM UserAnnotations WHERE user_id = %s", (user_id_))
+        cursor.execute("SELECT * FROM UserAnnotations WHERE user_id = %s", (user_id,))
         user = cursor.fetchall()
         
         if user:
