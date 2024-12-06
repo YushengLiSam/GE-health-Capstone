@@ -7,6 +7,9 @@ function TabNavigation({ selectedStage,patient_id }) {
   const [activeKey, setActiveKey] = useState(''); // Controls the active tab
   const [formData, setFormData] = useState({});
   const [tabsData, setTabsData] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [highlightedDatapoint, setHighlightedDatapoint] = useState(null);
   const fetchFormData = async () => {
     try {
       const response = await fetch(`http://127.0.0.1:5002/api/subcategories?category_id=${selectedStage}`, {
@@ -74,8 +77,51 @@ function TabNavigation({ selectedStage,patient_id }) {
     }
 };
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+
+    if (query.trim() === '') {
+      setSearchResults([]);
+      return;
+    }
+
+    const results = [];
+    tabsData.forEach((tab) => {
+      tab.datapoints.forEach((datapoint) => {
+        if (datapoint.name.toLowerCase().includes(query.toLowerCase())) {
+          results.push({ tabName: tab.name, datapoint });
+        }
+      });
+    });
+    setSearchResults(results);
+  };
+
+  const handleResultClick = (result) => {
+    setActiveKey(result.tabName);
+    setHighlightedDatapoint(result.datapoint.id); // Use datapoint ID for unique identification
+    setSearchQuery(''); // Clear search query
+    setSearchResults([]); // Clear search results
+  };
+
   return (
     <div className="tab-navigation">
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search datapoints..."
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+        {searchResults.length > 0 && (
+          <ul className="search-results">
+            {searchResults.map((result, index) => (
+              <li key={index} onClick={() => handleResultClick(result)}>
+                {result.datapoint.name} (in {result.tabName})
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
       <Tabs
         id="horizontal-tab-example"
         activeKey={activeKey}
@@ -92,6 +138,7 @@ function TabNavigation({ selectedStage,patient_id }) {
                   tabName={tab.name}
                   saveFormData={saveFormData}
                   formData={formData[tab.name] || {}}
+                  highlightedDatapoint={highlightedDatapoint}
                 />
                 <Summary
                 className = "summary"
