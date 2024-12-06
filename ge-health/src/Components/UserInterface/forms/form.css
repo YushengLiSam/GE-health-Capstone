@@ -28,4 +28,11 @@
   .form-button:last-of-type {
     margin-right: 0;
   }
+
+  .highlighted {
+    border: 2px solid #ff6f61; /* Highlight with a red border */
+    background-color: #ffe6e1; /* Light red background for emphasis */
+    border-radius: 5px;
+    padding: 10px;
+  }
   
