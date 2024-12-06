@@ -1,0 +1,40 @@
+.annotation-list {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .annotation-list h2 {
+    margin-bottom: 20px;
+    font-size: 1.5em;
+    color: #333;
+  }
+  
+  .annotation-list table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .annotation-list table th,
+  .annotation-list table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  .annotation-list table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+  }
+  
+  .no-annotations {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.2em;
+    color: #555;
+    background-color: #f9f9f9;
+    border: 1px dashed #ccc;
+    border-radius: 4px;
+  }
+  
