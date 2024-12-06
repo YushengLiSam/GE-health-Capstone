@@ -10,6 +10,7 @@ import UserInterface from './Components/UserInterface/UIStructure';
 import PatientList from './Components/PatientList';
 import Login from './Components/Auth/Login';
 import Signup from './Components/Auth/Signup';
+import AnnotationList from './Components/builder/AnnotationList';
 import './App.css';
 
 function App() {
@@ -48,6 +49,8 @@ function App() {
       </div>
       <div className="content">
         <Routes>
+          <Route path="/" element={<Navigate to="/admin/annotation-list" />} />
+          <Route path="annotation-list" element={<AnnotationList />} />
           <Route path="rule-builder" element={<RuleBuilder />} />
           <Route path="annotation-builder" element={<AnnotationBuilder />} />
           <Route path="users-roles" element={<UsersRoles />} />
