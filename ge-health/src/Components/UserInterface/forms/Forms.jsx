@@ -3,7 +3,7 @@ import { Form, Button } from 'react-bootstrap';
 import './form.css';
 
 
-function Forms({datapoints, tabName, saveFormData, formData}) {
+function Forms({datapoints, tabName, saveFormData, formData, highlightedDatapoint}) {
     const [localFormData, setLocalFormData] = useState(formData);
     useEffect(() => {
         setLocalFormData(formData);
@@ -21,61 +21,63 @@ function Forms({datapoints, tabName, saveFormData, formData}) {
       };
     
   
-    return (
-      <Form>
-        {datapoints.map((field, index) => (
-          <Form.Group
-            className="mb-3 input-group"
-            key={field?.name || index} // Fallback to index if name is not provided
-            controlId={field?.name || `field-${index}`} // Fallback controlId
-          >
-            <Form.Label>{field?.name || `Field ${index + 1}`}</Form.Label>
-            {field?.inputType === "textbox" ? (
-              <Form.Control
-                type="text"
-                name={field?.name || `field-${index}`}
-                onChange={(e) => handleChange(e, field)}
-                value={localFormData[field?.name] || ''}
-                required={field?.isMandatory || false}
-                className="input-field"
-              />
-            ) : field?.inputType === "dropdown" ? (
-              <Form.Control
-                as="select"
-                name={field?.name || `field-${index}`}
-                onChange={(e) => handleChange(e, field)}
-                value={localFormData[field?.name] || ''}
-                required={field?.isMandatory || false}
-                className="input-field"
+      return (
+        <Form>
+          {datapoints.map((field, index) => {
+            const isHighlighted = highlightedDatapoint === field.id; // Check if this datapoint is highlighted
+            return (
+              <Form.Group
+                className={`mb-3 input-group ${isHighlighted ? 'highlighted' : ''}`} // Apply 'highlighted' class
+                key={field?.name || index}
+                controlId={field?.name || `field-${index}`}
               >
-                <option value="">Select an option</option>
-                {(field?.listItems || []).map((item, idx) => (
-                  <option key={idx} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </Form.Control>
-            ) : field?.inputType === "checkbox" ? (
-              <Form.Check
-                type="checkbox"
-                name={field?.name || `field-${index}`}
-                onChange={(e) => handleChange(e, field)}
-                checked={localFormData[field?.name] || false}
-                required={field?.isMandatory || false}
-                className="input-field"
-                label={field?.label || 'Check this'}
-              />
-            ) : (
-              <span>Unsupported field type</span>
-            )}
-          </Form.Group>
-        ))}
-        <Button variant="secondary" onClick={handleSave} className="form-button">
-          Save
-        </Button>
-      </Form>
-    );
+                <Form.Label>{field?.name || `Field ${index + 1}`}</Form.Label>
+                {field?.inputType === 'textbox' ? (
+                  <Form.Control
+                    type="text"
+                    name={field?.name || `field-${index}`}
+                    onChange={(e) => handleChange(e, field)}
+                    value={localFormData[field?.name] || ''}
+                    required={field?.isMandatory || false}
+                    className="input-field"
+                  />
+                ) : field?.inputType === 'dropdown' ? (
+                  <Form.Control
+                    as="select"
+                    name={field?.name || `field-${index}`}
+                    onChange={(e) => handleChange(e, field)}
+                    value={localFormData[field?.name] || ''}
+                    required={field?.isMandatory || false}
+                    className="input-field"
+                  >
+                    <option value="">Select an option</option>
+                    {(field?.listItems || []).map((item, idx) => (
+                      <option key={idx} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </Form.Control>
+                ) : field?.inputType === 'checkbox' ? (
+                  <Form.Check
+                    type="checkbox"
+                    name={field?.name || `field-${index}`}
+                    onChange={(e) => handleChange(e, field)}
+                    checked={localFormData[field?.name] || false}
+                    required={field?.isMandatory || false}
+                    className="input-field"
+                    label={field?.label || 'Check this'}
+                  />
+                ) : (
+                  <span>Unsupported field type</span>
+                )}
+              </Form.Group>
+            );
+          })}
+          <Button variant="secondary" onClick={handleSave} className="form-button">
+            Save
+          </Button>
+        </Form>
+      );
+    }
     
-  }
-  
-  export default Forms;
+    export default Forms;
