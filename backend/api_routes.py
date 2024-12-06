@@ -103,15 +103,19 @@ HARDCODED_CATEGORIES = {
 # -------------------------
 # POST /categories
 # -------------------------
+# -------------------------
+# POST /categories
+# -------------------------
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
     data = request.json
     cursor = db1.cursor()
     try:
         # Validate input
-        if not data or 'categories' not in data:
-            return jsonify({"error": "Invalid input format. 'categories' key is required."}), 400
+        if not data or 'categories' not in data or 'user_id' not in data:
+            return jsonify({"error": "Invalid input format. 'categories' and 'user_id' keys are required."}), 400
 
+        user_id = data['user_id']
         response_messages = []
 
         for category in data['categories']:
@@ -129,6 +133,13 @@ def add_categories():
                 cursor.execute("INSERT INTO Categories (name) VALUES (%s)", (category_name,))
                 category_id = cursor.lastrowid
                 response_messages.append(f"Category '{category_name}' added successfully.")
+
+                # Add relationship to UserAnnotations table
+                cursor.execute(
+                    "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                    (user_id, category_id)
+                )
+                response_messages.append(f"User '{user_id}' is associated with the category '{category_name}'.")
 
             # Process subcategories if provided
             if 'subcategories' in category:
@@ -327,6 +338,9 @@ def get_categories_with_details():
 # POST /subcategories
 # ------------------------
 
+# ------------------------
+# POST /subcategories
+# ------------------------
 @api_routes.route('/subcategories', methods=['POST'])
 def add_subcategories():
     data = request.json
@@ -334,6 +348,11 @@ def add_subcategories():
     response_messages = []
 
     try:
+        # Validate input
+        if not data or 'user_id' not in data or 'category' not in data:
+            return jsonify({"error": "Invalid input format. 'user_id' and 'category' keys are required."}), 400
+
+        user_id = data['user_id']
         category_name = data['category'].strip()
 
         # Check if category exists
@@ -346,6 +365,13 @@ def add_subcategories():
             cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category_name,))
             category_id = cursor.lastrowid
             response_messages.append(f"Category '{category_name}' added successfully.")
+
+            # Add relationship to UserAnnotations table
+            cursor.execute(
+                "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                (user_id, category_id)
+            )
+            response_messages.append(f"User '{user_id}' is associated with the new category '{category_name}'.")
 
         # Iterate over subcategories provided in the input
         for subcategory in data['subcategory']:
@@ -366,10 +392,17 @@ def add_subcategories():
                 subcategory_id = cursor.lastrowid
                 response_messages.append(f"Subcategory '{subcategory_name}' added successfully under category '{category_name}'.")
 
+                # Add relationship to UserAnnotations table for subcategory
+                cursor.execute(
+                    "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                    (user_id, subcategory_id)
+                )
+                response_messages.append(f"User '{user_id}' is associated with the new subcategory '{subcategory_name}'.")
+
             # Process datapoints if provided
             if 'datapoints' in subcategory:
                 for datapoint in subcategory['datapoints']:
-                    datapoint_name = datapoint['name'].lower()
+                    datapoint_name = datapoint['name'].strip()
                     data_type = datapoint['datatype'].lower()
                     is_mandatory = datapoint['isMandatory']
 
@@ -400,6 +433,7 @@ def add_subcategories():
     except Exception as e:
         db1.rollback()  # Rollback in case of error
         return jsonify({"error": str(e)}), 602
+
 
 
 
@@ -843,22 +877,56 @@ def add_patient_data():
         ]
     }
 """
+# ------------------------
+# POST /datapoints
+# ------------------------
 @api_routes.route('/datapoints', methods=['POST'])
 def add_datapoint():
     data = request.json
     cursor = db1.cursor()
+    response_messages = []
+
     try:
+        # Validate input
+        if not data or 'subcategory_id' not in data or 'name' not in data:
+            return jsonify({"error": "Invalid input format. 'subcategory_id' and 'name' keys are required."}), 400
+
         subcategory_id = data['subcategory_id']
         name = data['name'].strip()
-        data_type = data['data_type'].lower()
+        data_type = data['data_type'].lower() if 'data_type' in data else None
         is_mandatory = data.get('is_mandatory', 0)
-        
+
+        # Check if the datapoint already exists in the given subcategory
         cursor.execute(
-            "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
-            (subcategory_id, name, data_type, is_mandatory)
+            "SELECT id FROM Datapoints WHERE subcategory_id = %s AND name = %s",
+            (subcategory_id, name)
         )
+        result = cursor.fetchone()
+
+        if result is not None:
+            response_messages.append(f"Datapoint '{name}' already exists under subcategory ID '{subcategory_id}'.")
+        else:
+            # Insert the new datapoint since it does not exist
+            cursor.execute(
+                "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+                (subcategory_id, name, data_type, is_mandatory)
+            )
+            datapoint_id = cursor.lastrowid
+            response_messages.append(f"Datapoint '{name}' added successfully under subcategory ID '{subcategory_id}'.")
+
+            # Insert list items if data type is 'list'
+            if data_type == 'list' and 'listItems' in data:
+                for item in data['listItems']:
+                    cursor.execute(
+                        "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                        (datapoint_id, item)
+                    )
+                response_messages.append(f"List items for datapoint '{name}' added successfully.")
+
+        # Commit changes
         db1.commit()
-        return jsonify({"message": "Datapoint added successfully."}), 200
+        return jsonify({"message": response_messages}), 200
+
     except Exception as e:
         db1.rollback()  # Rollback in case of error
         return jsonify({"error": str(e)}), 400
