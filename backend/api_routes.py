@@ -214,23 +214,36 @@ def add_categories():
 
 
 
+# -------------------------
+# GET /categories
+# -------------------------
+# Fetch all category names and ids associated with the given user
+
 @api_routes.route('/categories', methods=['GET'])
 def get_categories():
-   try:
-       cursor = db1.cursor(dictionary=True)
+    user_id = request.args.get('user_id')
 
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
 
-       # Select only the name and id from Categories table
-       cursor.execute("SELECT id, name FROM Categories")
-       categories = cursor.fetchall()
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Select categories associated with the given user_id from UserAnnotations table
+        cursor.execute("""
+            SELECT c.id, c.name
+            FROM Categories c
+            JOIN UserAnnotations ua ON c.id = ua.annotation_id
+            WHERE ua.user_id = %s
+        """, (user_id,))
+        categories = cursor.fetchall()
 
-       # Return the category id and name only
-       return jsonify({"categories": categories}), 200
+        # Return the category id and name only
+        return jsonify({"categories": categories}), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-   except Exception as e:
-       return jsonify({"error": str(e)}), 500
 
 
 
@@ -240,42 +253,49 @@ def get_categories():
 # -----------------------
 @api_routes.route('/categories', methods=['DELETE'])
 def delete_category():
-   data = request.json
-   category_id = data.get('id')
+    data = request.json
+    category_id = data.get('id')
+    user_id = data.get('user_id')
 
+    if not category_id or not user_id:
+        return jsonify({"error": "Category ID and User ID are required"}), 400
 
-   if not category_id:
-       return jsonify({"error": "Category ID is required"}), 400
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Verify if the user is associated with the category
+        cursor.execute(
+            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            (category_id, user_id)
+        )
+        result = cursor.fetchone()
 
-   try:
-       cursor = db1.cursor(dictionary=True)
+        if not result:
+            return jsonify({"error": "User not authorized to delete this category or category does not exist"}), 403
 
+        # Delete the specified category using the ID
+        cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
 
-       # Delete the specified category using the ID
-       cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
+        # Check if there are no more categories left
+        cursor.execute("SELECT COUNT(*) AS category_count FROM Categories")
+        result = cursor.fetchone()
+        if result['category_count'] == 0:
+            # Reset the AUTO_INCREMENT (id) value to 1
+            cursor.execute("ALTER TABLE Categories AUTO_INCREMENT = 1")
 
+        # Delete corresponding user annotation relation
+        cursor.execute("DELETE FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s", (category_id, user_id))
 
-       # Check if there are no more categories left
-       cursor.execute("SELECT COUNT(*) AS category_count FROM Categories")
-       result = cursor.fetchone()
-       if result['category_count'] == 0:
-           # Reset the AUTO_INCREMENT (id) value to 1
-           cursor.execute("ALTER TABLE Categories AUTO_INCREMENT = 1")
+        db1.commit()
 
+        # Return the remaining categories by calling the existing get_categories method
+        return get_categories()
 
-       db1.commit()
-
-
-       # Return the remaining categories by calling the existing get_categories method
-       return get_categories()
-
-
-   except Exception as e:
-       db1.rollback()  # Rollback in case of error
-       return jsonify({"error": f"Database error: {str(e)}"}), 600
-   finally:
-       cursor.close()
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": f"Database error: {str(e)}"}), 600
+    finally:
+        cursor.close()
 
 
 
@@ -445,39 +465,48 @@ def add_subcategories():
 
 @api_routes.route('/subcategories', methods=['GET'])
 def get_subcategories():
-   category_id = request.args.get('category_id')
-   category_name = request.args.get('category_name')
+    category_id = request.args.get('category_id')
+    category_name = request.args.get('category_name')
+    user_id = request.args.get('user_id')
 
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
 
-   try:
-       cursor = db1.cursor(dictionary=True)
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Determine the category_id either from provided ID or name
+        if category_id:
+            # Find the category by ID
+            cursor.execute("SELECT id FROM Categories WHERE id = %s", (category_id,))
+        elif category_name:
+            # Find the category by name if ID is not provided
+            cursor.execute("SELECT id FROM Categories WHERE name = %s", (category_name,))
+        else:
+            return jsonify({"error": "Either category ID or category name is required"}), 400
 
-       if category_id:
-           # Find the category by ID
-           cursor.execute("SELECT id FROM Categories WHERE id= %s", (category_id,))
-       elif category_name:
-           # Find the category by name if ID is not provided
-           cursor.execute("SELECT id FROM Categories WHERE name= %s", (category_name,))
-       else:
-           return jsonify({"error": "Either category ID or category name is required"}), 400
+        category = cursor.fetchone()
 
+        if not category:
+            return jsonify({"error": "Category not found"}), 404
 
-       category = cursor.fetchone()
+        category_id = category['id']
 
+        # Verify if the user is associated with the category
+        cursor.execute(
+            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            (category_id, user_id)
+        )
+        user_category = cursor.fetchone()
 
-       if not category:
-           return jsonify({"error": "Category not found"}), 404
+        if not user_category:
+            return jsonify({"error": "User not authorized to access this category"}), 403
 
+        # Find subcategories for the given category
+        cursor.execute("SELECT id, name FROM Subcategories WHERE category_id = %s", (category_id,))
+        subcategories = cursor.fetchall()
 
-       category_id = category['id']
-
-
-       # Find subcategories for the given category
-       cursor.execute("SELECT id, name FROM Subcategories WHERE category_id = %s", (category_id,))
-       subcategories = cursor.fetchall()
-
-       for subcategory in subcategories:
+        for subcategory in subcategories:
             subcategory_id = subcategory['id']
             cursor.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
             datapoints = cursor.fetchall()
@@ -486,7 +515,7 @@ def get_subcategories():
             subcategory['datapoints'] = []
             for datapoint in datapoints:
                 datapoint_dict = {
-                    'id':datapoint['id'],
+                    'id': datapoint['id'],
                     'name': datapoint['name'],
                     'datatype': datapoint['data_type'],
                     'inputType': datapoint['input_type'],
@@ -501,12 +530,10 @@ def get_subcategories():
 
                 subcategory['datapoints'].append(datapoint_dict)
 
+        return jsonify({"subcategories": subcategories}), 200
 
-       return jsonify({"subcategories": subcategories}), 200
-
-
-   except Exception as e:
-       return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
@@ -514,50 +541,63 @@ def get_subcategories():
 # -------------------------
 # DELETE /subcategories
 # -------------------------
-# Deletes subcategory with JSON data in same format as get_subcategory
-
+# Deletes subcategory with JSON data in the same format as get_subcategory
 
 @api_routes.route('/subcategories', methods=['DELETE'])
 def delete_subcategories():
-   data = request.json
-   try:
-       category_name = data.get('category_name')
-       cursor = db1.cursor(dictionary=True)
-       cursor.execute(
-           "SELECT * FROM Categories WHERE name = %s", (category_name,))
-       category = cursor.fetchone()
-       if category is None:
-           return jsonify({"error": "Category not found"}), 404
+    data = request.json
+    category_name = data.get('category_name')
+    subcategory_name = data.get('subcategory_name')
+    user_id = data.get('user_id')
 
+    if not category_name or not subcategory_name or not user_id:
+        return jsonify({"error": "Category name, subcategory name, and user ID are required"}), 400
 
-       cursor.execute(
-           "SELECT id FROM categories WHERE name = %s", (category_name,))
-       category_id = cursor.fetchone()
-       if category_id:
-           print(category_id)
-           category_id = category_id['id']
-           print(category_id)
-       else:
-           return jsonify({"error": "Category not found"}), 404
-       print(category_name)
-       subcategory_name = data.get('subcategory_name')
-       cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s",
-                      (category_id, subcategory_name))
-       subcategories = cursor.fetchall()
-       # Fetch datapoints for each subcategory
-       for subcategory in subcategories:
-           subcategory_id = subcategory['id']
-           cursor.execute(
-               "DELETE FROM subcategories WHERE id = %s AND category_id = %s", (subcategory_id, category_id))
-       db1.commit()
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Verify if the category exists
+        cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
+        category = cursor.fetchone()
+        if category is None:
+            return jsonify({"error": "Category not found"}), 404
 
-       return jsonify({"message": "Category and its related data deleted successfully!"}), 200
+        category_id = category['id']
 
+        # Verify if the user is associated with the category
+        cursor.execute(
+            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            (category_id, user_id)
+        )
+        user_category = cursor.fetchone()
+        if not user_category:
+            return jsonify({"error": "User not authorized to delete this subcategory"}), 403
 
-   except Exception as e:
-       db1.rollback()
-       return jsonify({"error": f"Database error: {str(e)}"}), 604
+        # Verify if the subcategory exists under the given category
+        cursor.execute(
+            "SELECT * FROM Subcategories WHERE category_id = %s AND name = %s",
+            (category_id, subcategory_name)
+        )
+        subcategory = cursor.fetchone()
+        if subcategory is None:
+            return jsonify({"error": "Subcategory not found under the specified category"}), 404
+
+        subcategory_id = subcategory['id']
+
+        # Delete all datapoints under this subcategory
+        cursor.execute("DELETE FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+
+        # Delete the specified subcategory
+        cursor.execute("DELETE FROM Subcategories WHERE id = %s AND category_id = %s", (subcategory_id, category_id))
+
+        db1.commit()
+
+        return jsonify({"message": f"Subcategory '{subcategory_name}' and its related data deleted successfully!"}), 200
+
+    except Exception as e:
+        db1.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 604
+
 
 
 # ------------------------
