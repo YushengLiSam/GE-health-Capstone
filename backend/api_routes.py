@@ -1063,3 +1063,45 @@ def get_annotations():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+# -------------------------
+# GET /user_annotations/<user_id>
+# ------------------------
+# use user_id to get all attributes that match this user_id
+
+@api_routes.route('/user_annotations/<int:user_id>', methods=['GET'])
+def get_annotation_by_id(user_id):
+    cursor = db1.cursor(dictionary=True)
+    try: 
+        cursor.execute("SELECT * FROM UserAnnotations WHERE user_id = %s", (user_id,))
+        user = cursor.fetchall()
+        
+        if user:
+            return jsonify(user), 200
+        else:
+            return jsonify({"error": "User not found"}), 404
+
+    except Exception as e: 
+        return jsonify({"error": str(e)}), 400
+
+# ---------------------------
+# POST /user_annotations
+# ---------------------------
+# Adds a new user_id and annotation_id pairing. 
+# input format: { user_id : <user_id>, annotation_id : <annotation_id> }
+
+@api_routes.route('/user_annotations', methods=['POST'])
+def add_user_annotation():
+    data = request.json
+    cursor = db1.cursor()
+
+    try: 
+        user_id = data['user_id']
+        annotation_id = data['annotation_id']
+        cursor.execute("INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)", (user_id, annotation_id))
+        db1.commit()
+        return jsonify({"message": "Added successfully to UserAnnotations"}), 200
+
+    except Exception as e:
+        db1.rollback()
+        return jsonify({"error": str(e)}), 400
+
