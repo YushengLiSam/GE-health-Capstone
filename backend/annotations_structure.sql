@@ -32,6 +32,15 @@ CREATE TABLE `Annotation` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `Annotation`
+--
+
+LOCK TABLES `Annotation` WRITE;
+/*!40000 ALTER TABLE `Annotation` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Annotation` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Categories`
 --
 
@@ -45,6 +54,15 @@ CREATE TABLE `Categories` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Categories`
+--
+
+LOCK TABLES `Categories` WRITE;
+/*!40000 ALTER TABLE `Categories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Categories` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `Datapoints`
@@ -69,6 +87,15 @@ CREATE TABLE `Datapoints` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `Datapoints`
+--
+
+LOCK TABLES `Datapoints` WRITE;
+/*!40000 ALTER TABLE `Datapoints` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Datapoints` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `ListValues`
 --
 
@@ -85,6 +112,15 @@ CREATE TABLE `ListValues` (
   CONSTRAINT `listvalues_ibfk_1` FOREIGN KEY (`datapoint_id`) REFERENCES `Datapoints` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ListValues`
+--
+
+LOCK TABLES `ListValues` WRITE;
+/*!40000 ALTER TABLE `ListValues` DISABLE KEYS */;
+/*!40000 ALTER TABLE `ListValues` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `PatientData`
@@ -110,6 +146,15 @@ CREATE TABLE `PatientData` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `PatientData`
+--
+
+LOCK TABLES `PatientData` WRITE;
+/*!40000 ALTER TABLE `PatientData` DISABLE KEYS */;
+/*!40000 ALTER TABLE `PatientData` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `PatientInformation`
 --
 
@@ -126,6 +171,15 @@ CREATE TABLE `PatientInformation` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `PatientInformation`
+--
+
+LOCK TABLES `PatientInformation` WRITE;
+/*!40000 ALTER TABLE `PatientInformation` DISABLE KEYS */;
+/*!40000 ALTER TABLE `PatientInformation` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `Rules`
@@ -147,6 +201,15 @@ CREATE TABLE `Rules` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `Rules`
+--
+
+LOCK TABLES `Rules` WRITE;
+/*!40000 ALTER TABLE `Rules` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Rules` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Subcategories`
 --
 
@@ -166,6 +229,15 @@ CREATE TABLE `Subcategories` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `Subcategories`
+--
+
+LOCK TABLES `Subcategories` WRITE;
+/*!40000 ALTER TABLE `Subcategories` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Subcategories` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `Symbols`
 --
 
@@ -178,6 +250,15 @@ CREATE TABLE `Symbols` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `Symbols`
+--
+
+LOCK TABLES `Symbols` WRITE;
+/*!40000 ALTER TABLE `Symbols` DISABLE KEYS */;
+/*!40000 ALTER TABLE `Symbols` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `User`
@@ -196,6 +277,16 @@ CREATE TABLE `User` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Dumping data for table `User`
+--
+
+LOCK TABLES `User` WRITE;
+/*!40000 ALTER TABLE `User` DISABLE KEYS */;
+INSERT INTO `User` VALUES (0,'nurseA','passwordA'),(1,'nurseB','passwordB');
+/*!40000 ALTER TABLE `User` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `UserAnnotations`
 --
 
@@ -204,13 +295,22 @@ DROP TABLE IF EXISTS `UserAnnotations`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `UserAnnotations` (
   `user_id` int NOT NULL,
-  `annotation_id` int NOT NULL,
-  PRIMARY KEY (`user_id`,`annotation_id`),
-  KEY `user_annotations_ibfk_2` (`annotation_id`),
+  `category_id` int NOT NULL,
+  PRIMARY KEY (`user_id`,`category_id`),
+  KEY `user_categories_fk_category_id` (`category_id`),
   CONSTRAINT `user_annotations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `User` (`user_id`) ON DELETE CASCADE,
-  CONSTRAINT `user_annotations_ibfk_2` FOREIGN KEY (`annotation_id`) REFERENCES `Annotation` (`anno_id`) ON DELETE CASCADE
+  CONSTRAINT `user_categories_fk_category_id` FOREIGN KEY (`category_id`) REFERENCES `Categories` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `UserAnnotations`
+--
+
+LOCK TABLES `UserAnnotations` WRITE;
+/*!40000 ALTER TABLE `UserAnnotations` DISABLE KEYS */;
+/*!40000 ALTER TABLE `UserAnnotations` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -221,4 +321,4 @@ CREATE TABLE `UserAnnotations` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2024-12-05 20:28:23
+-- Dump completed on 2024-12-08 15:35:27
