@@ -136,7 +136,7 @@ def add_categories():
 
                 # Add relationship to UserAnnotations table
                 cursor.execute(
-                    "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                    "INSERT INTO UserAnnotations (user_id, category_id) VALUES (%s, %s)",
                     (user_id, category_id)
                 )
                 response_messages.append(f"User '{user_id}' is associated with the category '{category_name}'.")
@@ -233,7 +233,7 @@ def get_categories():
         cursor.execute("""
             SELECT c.id, c.name
             FROM Categories c
-            JOIN UserAnnotations ua ON c.id = ua.annotation_id
+            JOIN UserAnnotations ua ON c.id = ua.category_id
             WHERE ua.user_id = %s
         """, (user_id,))
         categories = cursor.fetchall()
@@ -265,7 +265,7 @@ def delete_category():
 
         # Verify if the user is associated with the category
         cursor.execute(
-            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            "SELECT * FROM UserAnnotations WHERE category_id = %s AND user_id = %s",
             (category_id, user_id)
         )
         result = cursor.fetchone()
@@ -284,7 +284,7 @@ def delete_category():
             cursor.execute("ALTER TABLE Categories AUTO_INCREMENT = 1")
 
         # Delete corresponding user annotation relation
-        cursor.execute("DELETE FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s", (category_id, user_id))
+        cursor.execute("DELETE FROM UserAnnotations WHERE category_id = %s AND user_id = %s", (category_id, user_id))
 
         db1.commit()
 
@@ -388,7 +388,7 @@ def add_subcategories():
 
             # Add relationship to UserAnnotations table
             cursor.execute(
-                "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                "INSERT INTO UserAnnotations (user_id, category_id) VALUES (%s, %s)",
                 (user_id, category_id)
             )
             response_messages.append(f"User '{user_id}' is associated with the new category '{category_name}'.")
@@ -414,7 +414,7 @@ def add_subcategories():
 
                 # Add relationship to UserAnnotations table for subcategory
                 cursor.execute(
-                    "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                    "INSERT INTO UserAnnotations (user_id, category_id) VALUES (%s, %s)",
                     (user_id, subcategory_id)
                 )
                 response_messages.append(f"User '{user_id}' is associated with the new subcategory '{subcategory_name}'.")
@@ -494,7 +494,7 @@ def get_subcategories():
 
         # Verify if the user is associated with the category
         cursor.execute(
-            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            "SELECT * FROM UserAnnotations WHERE category_id = %s AND user_id = %s",
             (category_id, user_id)
         )
         user_category = cursor.fetchone()
@@ -566,7 +566,7 @@ def delete_subcategories():
 
         # Verify if the user is associated with the category
         cursor.execute(
-            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            "SELECT * FROM UserAnnotations WHERE category_id = %s AND user_id = %s",
             (category_id, user_id)
         )
         user_category = cursor.fetchone()
@@ -1136,8 +1136,8 @@ def add_user_annotation():
 
     try: 
         user_id = data['user_id']
-        annotation_id = data['annotation_id']
-        cursor.execute("INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)", (user_id, annotation_id))
+        category_id = data['category_id']
+        cursor.execute("INSERT INTO UserAnnotations (user_id, category_id) VALUES (%s, %s)", (user_id, category_id))
         db1.commit()
         return jsonify({"message": "Added successfully to UserAnnotations"}), 200
 
