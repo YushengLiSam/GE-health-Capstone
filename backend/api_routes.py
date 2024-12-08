@@ -103,15 +103,19 @@ HARDCODED_CATEGORIES = {
 # -------------------------
 # POST /categories
 # -------------------------
+# -------------------------
+# POST /categories
+# -------------------------
 @api_routes.route('/categories', methods=['POST'])
 def add_categories():
     data = request.json
     cursor = db1.cursor()
     try:
         # Validate input
-        if not data or 'categories' not in data:
-            return jsonify({"error": "Invalid input format. 'categories' key is required."}), 400
+        if not data or 'categories' not in data or 'user_id' not in data:
+            return jsonify({"error": "Invalid input format. 'categories' and 'user_id' keys are required."}), 400
 
+        user_id = data['user_id']
         response_messages = []
 
         for category in data['categories']:
@@ -129,6 +133,13 @@ def add_categories():
                 cursor.execute("INSERT INTO Categories (name) VALUES (%s)", (category_name,))
                 category_id = cursor.lastrowid
                 response_messages.append(f"Category '{category_name}' added successfully.")
+
+                # Add relationship to UserAnnotations table
+                cursor.execute(
+                    "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                    (user_id, category_id)
+                )
+                response_messages.append(f"User '{user_id}' is associated with the category '{category_name}'.")
 
             # Process subcategories if provided
             if 'subcategories' in category:
@@ -203,23 +214,36 @@ def add_categories():
 
 
 
+# -------------------------
+# GET /categories
+# -------------------------
+# Fetch all category names and ids associated with the given user
+
 @api_routes.route('/categories', methods=['GET'])
 def get_categories():
-   try:
-       cursor = db1.cursor(dictionary=True)
+    user_id = request.args.get('user_id')
 
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
 
-       # Select only the name and id from Categories table
-       cursor.execute("SELECT id, name FROM Categories")
-       categories = cursor.fetchall()
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Select categories associated with the given user_id from UserAnnotations table
+        cursor.execute("""
+            SELECT c.id, c.name
+            FROM Categories c
+            JOIN UserAnnotations ua ON c.id = ua.annotation_id
+            WHERE ua.user_id = %s
+        """, (user_id,))
+        categories = cursor.fetchall()
 
-       # Return the category id and name only
-       return jsonify({"categories": categories}), 200
+        # Return the category id and name only
+        return jsonify({"categories": categories}), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-   except Exception as e:
-       return jsonify({"error": str(e)}), 500
 
 
 
@@ -229,42 +253,49 @@ def get_categories():
 # -----------------------
 @api_routes.route('/categories', methods=['DELETE'])
 def delete_category():
-   data = request.json
-   category_id = data.get('id')
+    data = request.json
+    category_id = data.get('id')
+    user_id = data.get('user_id')
 
+    if not category_id or not user_id:
+        return jsonify({"error": "Category ID and User ID are required"}), 400
 
-   if not category_id:
-       return jsonify({"error": "Category ID is required"}), 400
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Verify if the user is associated with the category
+        cursor.execute(
+            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            (category_id, user_id)
+        )
+        result = cursor.fetchone()
 
-   try:
-       cursor = db1.cursor(dictionary=True)
+        if not result:
+            return jsonify({"error": "User not authorized to delete this category or category does not exist"}), 403
 
+        # Delete the specified category using the ID
+        cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
 
-       # Delete the specified category using the ID
-       cursor.execute("DELETE FROM Categories WHERE id = %s", (category_id,))
+        # Check if there are no more categories left
+        cursor.execute("SELECT COUNT(*) AS category_count FROM Categories")
+        result = cursor.fetchone()
+        if result['category_count'] == 0:
+            # Reset the AUTO_INCREMENT (id) value to 1
+            cursor.execute("ALTER TABLE Categories AUTO_INCREMENT = 1")
 
+        # Delete corresponding user annotation relation
+        cursor.execute("DELETE FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s", (category_id, user_id))
 
-       # Check if there are no more categories left
-       cursor.execute("SELECT COUNT(*) AS category_count FROM Categories")
-       result = cursor.fetchone()
-       if result['category_count'] == 0:
-           # Reset the AUTO_INCREMENT (id) value to 1
-           cursor.execute("ALTER TABLE Categories AUTO_INCREMENT = 1")
+        db1.commit()
 
+        # Return the remaining categories by calling the existing get_categories method
+        return get_categories()
 
-       db1.commit()
-
-
-       # Return the remaining categories by calling the existing get_categories method
-       return get_categories()
-
-
-   except Exception as e:
-       db1.rollback()  # Rollback in case of error
-       return jsonify({"error": f"Database error: {str(e)}"}), 600
-   finally:
-       cursor.close()
+    except Exception as e:
+        db1.rollback()  # Rollback in case of error
+        return jsonify({"error": f"Database error: {str(e)}"}), 600
+    finally:
+        cursor.close()
 
 
 
@@ -327,6 +358,9 @@ def get_categories_with_details():
 # POST /subcategories
 # ------------------------
 
+# ------------------------
+# POST /subcategories
+# ------------------------
 @api_routes.route('/subcategories', methods=['POST'])
 def add_subcategories():
     data = request.json
@@ -334,6 +368,11 @@ def add_subcategories():
     response_messages = []
 
     try:
+        # Validate input
+        if not data or 'user_id' not in data or 'category' not in data:
+            return jsonify({"error": "Invalid input format. 'user_id' and 'category' keys are required."}), 400
+
+        user_id = data['user_id']
         category_name = data['category'].strip()
 
         # Check if category exists
@@ -346,6 +385,13 @@ def add_subcategories():
             cursor.execute("INSERT INTO categories (name) VALUES (%s)", (category_name,))
             category_id = cursor.lastrowid
             response_messages.append(f"Category '{category_name}' added successfully.")
+
+            # Add relationship to UserAnnotations table
+            cursor.execute(
+                "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                (user_id, category_id)
+            )
+            response_messages.append(f"User '{user_id}' is associated with the new category '{category_name}'.")
 
         # Iterate over subcategories provided in the input
         for subcategory in data['subcategory']:
@@ -366,10 +412,17 @@ def add_subcategories():
                 subcategory_id = cursor.lastrowid
                 response_messages.append(f"Subcategory '{subcategory_name}' added successfully under category '{category_name}'.")
 
+                # Add relationship to UserAnnotations table for subcategory
+                cursor.execute(
+                    "INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)",
+                    (user_id, subcategory_id)
+                )
+                response_messages.append(f"User '{user_id}' is associated with the new subcategory '{subcategory_name}'.")
+
             # Process datapoints if provided
             if 'datapoints' in subcategory:
                 for datapoint in subcategory['datapoints']:
-                    datapoint_name = datapoint['name'].lower()
+                    datapoint_name = datapoint['name'].strip()
                     data_type = datapoint['datatype'].lower()
                     is_mandatory = datapoint['isMandatory']
 
@@ -403,6 +456,7 @@ def add_subcategories():
 
 
 
+
 # ------------------------
 # GET /subcategories
 # ------------------------
@@ -411,39 +465,48 @@ def add_subcategories():
 
 @api_routes.route('/subcategories', methods=['GET'])
 def get_subcategories():
-   category_id = request.args.get('category_id')
-   category_name = request.args.get('category_name')
+    category_id = request.args.get('category_id')
+    category_name = request.args.get('category_name')
+    user_id = request.args.get('user_id')
 
+    if not user_id:
+        return jsonify({"error": "User ID is required"}), 400
 
-   try:
-       cursor = db1.cursor(dictionary=True)
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Determine the category_id either from provided ID or name
+        if category_id:
+            # Find the category by ID
+            cursor.execute("SELECT id FROM Categories WHERE id = %s", (category_id,))
+        elif category_name:
+            # Find the category by name if ID is not provided
+            cursor.execute("SELECT id FROM Categories WHERE name = %s", (category_name,))
+        else:
+            return jsonify({"error": "Either category ID or category name is required"}), 400
 
-       if category_id:
-           # Find the category by ID
-           cursor.execute("SELECT id FROM Categories WHERE id= %s", (category_id,))
-       elif category_name:
-           # Find the category by name if ID is not provided
-           cursor.execute("SELECT id FROM Categories WHERE name= %s", (category_name,))
-       else:
-           return jsonify({"error": "Either category ID or category name is required"}), 400
+        category = cursor.fetchone()
 
+        if not category:
+            return jsonify({"error": "Category not found"}), 404
 
-       category = cursor.fetchone()
+        category_id = category['id']
 
+        # Verify if the user is associated with the category
+        cursor.execute(
+            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            (category_id, user_id)
+        )
+        user_category = cursor.fetchone()
 
-       if not category:
-           return jsonify({"error": "Category not found"}), 404
+        if not user_category:
+            return jsonify({"error": "User not authorized to access this category"}), 403
 
+        # Find subcategories for the given category
+        cursor.execute("SELECT id, name FROM Subcategories WHERE category_id = %s", (category_id,))
+        subcategories = cursor.fetchall()
 
-       category_id = category['id']
-
-
-       # Find subcategories for the given category
-       cursor.execute("SELECT id, name FROM Subcategories WHERE category_id = %s", (category_id,))
-       subcategories = cursor.fetchall()
-
-       for subcategory in subcategories:
+        for subcategory in subcategories:
             subcategory_id = subcategory['id']
             cursor.execute("SELECT * FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
             datapoints = cursor.fetchall()
@@ -452,7 +515,7 @@ def get_subcategories():
             subcategory['datapoints'] = []
             for datapoint in datapoints:
                 datapoint_dict = {
-                    'id':datapoint['id'],
+                    'id': datapoint['id'],
                     'name': datapoint['name'],
                     'datatype': datapoint['data_type'],
                     'inputType': datapoint['input_type'],
@@ -467,12 +530,10 @@ def get_subcategories():
 
                 subcategory['datapoints'].append(datapoint_dict)
 
+        return jsonify({"subcategories": subcategories}), 200
 
-       return jsonify({"subcategories": subcategories}), 200
-
-
-   except Exception as e:
-       return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
@@ -480,50 +541,63 @@ def get_subcategories():
 # -------------------------
 # DELETE /subcategories
 # -------------------------
-# Deletes subcategory with JSON data in same format as get_subcategory
-
+# Deletes subcategory with JSON data in the same format as get_subcategory
 
 @api_routes.route('/subcategories', methods=['DELETE'])
 def delete_subcategories():
-   data = request.json
-   try:
-       category_name = data.get('category_name')
-       cursor = db1.cursor(dictionary=True)
-       cursor.execute(
-           "SELECT * FROM Categories WHERE name = %s", (category_name,))
-       category = cursor.fetchone()
-       if category is None:
-           return jsonify({"error": "Category not found"}), 404
+    data = request.json
+    category_name = data.get('category_name')
+    subcategory_name = data.get('subcategory_name')
+    user_id = data.get('user_id')
 
+    if not category_name or not subcategory_name or not user_id:
+        return jsonify({"error": "Category name, subcategory name, and user ID are required"}), 400
 
-       cursor.execute(
-           "SELECT id FROM categories WHERE name = %s", (category_name,))
-       category_id = cursor.fetchone()
-       if category_id:
-           print(category_id)
-           category_id = category_id['id']
-           print(category_id)
-       else:
-           return jsonify({"error": "Category not found"}), 404
-       print(category_name)
-       subcategory_name = data.get('subcategory_name')
-       cursor.execute("SELECT * FROM subcategories WHERE category_id = %s AND name = %s",
-                      (category_id, subcategory_name))
-       subcategories = cursor.fetchall()
-       # Fetch datapoints for each subcategory
-       for subcategory in subcategories:
-           subcategory_id = subcategory['id']
-           cursor.execute(
-               "DELETE FROM subcategories WHERE id = %s AND category_id = %s", (subcategory_id, category_id))
-       db1.commit()
+    try:
+        cursor = db1.cursor(dictionary=True)
 
+        # Verify if the category exists
+        cursor.execute("SELECT * FROM Categories WHERE name = %s", (category_name,))
+        category = cursor.fetchone()
+        if category is None:
+            return jsonify({"error": "Category not found"}), 404
 
-       return jsonify({"message": "Category and its related data deleted successfully!"}), 200
+        category_id = category['id']
 
+        # Verify if the user is associated with the category
+        cursor.execute(
+            "SELECT * FROM UserAnnotations WHERE annotation_id = %s AND user_id = %s",
+            (category_id, user_id)
+        )
+        user_category = cursor.fetchone()
+        if not user_category:
+            return jsonify({"error": "User not authorized to delete this subcategory"}), 403
 
-   except Exception as e:
-       db1.rollback()
-       return jsonify({"error": f"Database error: {str(e)}"}), 604
+        # Verify if the subcategory exists under the given category
+        cursor.execute(
+            "SELECT * FROM Subcategories WHERE category_id = %s AND name = %s",
+            (category_id, subcategory_name)
+        )
+        subcategory = cursor.fetchone()
+        if subcategory is None:
+            return jsonify({"error": "Subcategory not found under the specified category"}), 404
+
+        subcategory_id = subcategory['id']
+
+        # Delete all datapoints under this subcategory
+        cursor.execute("DELETE FROM Datapoints WHERE subcategory_id = %s", (subcategory_id,))
+
+        # Delete the specified subcategory
+        cursor.execute("DELETE FROM Subcategories WHERE id = %s AND category_id = %s", (subcategory_id, category_id))
+
+        db1.commit()
+
+        return jsonify({"message": f"Subcategory '{subcategory_name}' and its related data deleted successfully!"}), 200
+
+    except Exception as e:
+        db1.rollback()
+        return jsonify({"error": f"Database error: {str(e)}"}), 604
+
 
 
 # ------------------------
@@ -843,22 +917,56 @@ def add_patient_data():
         ]
     }
 """
+# ------------------------
+# POST /datapoints
+# ------------------------
 @api_routes.route('/datapoints', methods=['POST'])
 def add_datapoint():
     data = request.json
     cursor = db1.cursor()
+    response_messages = []
+
     try:
+        # Validate input
+        if not data or 'subcategory_id' not in data or 'name' not in data:
+            return jsonify({"error": "Invalid input format. 'subcategory_id' and 'name' keys are required."}), 400
+
         subcategory_id = data['subcategory_id']
         name = data['name'].strip()
-        data_type = data['data_type'].lower()
+        data_type = data['data_type'].lower() if 'data_type' in data else None
         is_mandatory = data.get('is_mandatory', 0)
-        
+
+        # Check if the datapoint already exists in the given subcategory
         cursor.execute(
-            "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
-            (subcategory_id, name, data_type, is_mandatory)
+            "SELECT id FROM Datapoints WHERE subcategory_id = %s AND name = %s",
+            (subcategory_id, name)
         )
+        result = cursor.fetchone()
+
+        if result is not None:
+            response_messages.append(f"Datapoint '{name}' already exists under subcategory ID '{subcategory_id}'.")
+        else:
+            # Insert the new datapoint since it does not exist
+            cursor.execute(
+                "INSERT INTO Datapoints (subcategory_id, name, data_type, is_mandatory) VALUES (%s, %s, %s, %s)",
+                (subcategory_id, name, data_type, is_mandatory)
+            )
+            datapoint_id = cursor.lastrowid
+            response_messages.append(f"Datapoint '{name}' added successfully under subcategory ID '{subcategory_id}'.")
+
+            # Insert list items if data type is 'list'
+            if data_type == 'list' and 'listItems' in data:
+                for item in data['listItems']:
+                    cursor.execute(
+                        "INSERT INTO ListValues (datapoint_id, value) VALUES (%s, %s)",
+                        (datapoint_id, item)
+                    )
+                response_messages.append(f"List items for datapoint '{name}' added successfully.")
+
+        # Commit changes
         db1.commit()
-        return jsonify({"message": "Datapoint added successfully."}), 200
+        return jsonify({"message": response_messages}), 200
+
     except Exception as e:
         db1.rollback()  # Rollback in case of error
         return jsonify({"error": str(e)}), 400
@@ -993,5 +1101,47 @@ def get_annotations():
         annotations = cursor.fetchall()
         return jsonify(annotations), 200
     except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+# -------------------------
+# GET /user_annotations/<user_id>
+# ------------------------
+# use user_id to get all attributes that match this user_id
+
+@api_routes.route('/user_annotations/<int:user_id>', methods=['GET'])
+def get_annotation_by_id(user_id):
+    cursor = db1.cursor(dictionary=True)
+    try: 
+        cursor.execute("SELECT * FROM UserAnnotations WHERE user_id = %s", (user_id,))
+        user = cursor.fetchall()
+        
+        if user:
+            return jsonify(user), 200
+        else:
+            return jsonify({"error": "User not found"}), 404
+
+    except Exception as e: 
+        return jsonify({"error": str(e)}), 400
+
+# ---------------------------
+# POST /user_annotations
+# ---------------------------
+# Adds a new user_id and annotation_id pairing. 
+# input format: { user_id : <user_id>, annotation_id : <annotation_id> }
+
+@api_routes.route('/user_annotations', methods=['POST'])
+def add_user_annotation():
+    data = request.json
+    cursor = db1.cursor()
+
+    try: 
+        user_id = data['user_id']
+        annotation_id = data['annotation_id']
+        cursor.execute("INSERT INTO UserAnnotations (user_id, annotation_id) VALUES (%s, %s)", (user_id, annotation_id))
+        db1.commit()
+        return jsonify({"message": "Added successfully to UserAnnotations"}), 200
+
+    except Exception as e:
+        db1.rollback()
         return jsonify({"error": str(e)}), 400
 
