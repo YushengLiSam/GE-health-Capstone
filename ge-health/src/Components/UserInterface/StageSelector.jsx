@@ -7,11 +7,13 @@ function StageSelector({ onStageSelect }) {
 
   const [stages,setStages] = useState([]);
 
+  const user_id = sessionStorage.getItem('userID');
+
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:5002/api/categories'); // Replace with your API endpoint
+      const response = await fetch(`http://127.0.0.1:5002/api/categories?user_id=${user_id}`);
       const data = await response.json();
-      setStages(data.categories); // Assuming setStages is defined
+      setStages(data.categories);
       console.log(data.categories);
     } catch (error) {
       console.error('Error fetching stages:', error);
