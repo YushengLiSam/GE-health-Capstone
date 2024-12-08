@@ -3,17 +3,42 @@ import './AnnotationList.css';
 
 function AnnotationList() {
   const [annotations, setAnnotations] = useState([]);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch annotations from a backend or local storage (example logic below)
-    const storedAnnotations = JSON.parse(localStorage.getItem('annotations')) || [];
-    setAnnotations(storedAnnotations);
+    // Fetch annotations from the API
+    const fetchAnnotations = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:5002/api/categories', {
+          method: 'GET', // Specify the method as 'GET'
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching annotations: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Annotations are: ", data);
+        setAnnotations(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnnotations();
   }, []);
 
   return (
     <div className="annotation-list">
       <h2>Annotation List</h2>
-      {annotations.length > 0 ? (
+      {loading ? (
+        <div className="loading">Loading annotations...</div>
+      ) : error ? (
+        <div className="error">{error}</div>
+      ) : annotations.length > 0 ? (
         <table>
           <thead>
             <tr>
