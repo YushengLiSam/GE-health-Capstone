@@ -10,8 +10,9 @@ function AnnotationList() {
     // Fetch annotations from the API
     const fetchAnnotations = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5002/api/categories', {
-          method: 'GET', // Specify the method as 'GET'
+        const userID = sessionStorage.getItem("userID");
+        const response = await fetch(`http://127.0.0.1:5002/api/categories?user_id=${userID}`, {
+          method: 'GET', 
         });
 
         if (!response.ok) {

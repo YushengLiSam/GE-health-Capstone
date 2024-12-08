@@ -233,13 +233,14 @@ function AnnotationBuilder() {
 
     try {
       console.log('Saving data:', formattedData);
+      const userID = sessionStorage.getItem("userID");
 
       const response = await fetch('http://127.0.0.1:5002/api/categories', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ categories: formattedData }),
+        body: JSON.stringify({ categories: formattedData, user_id: userID }),
       });
 
       if (response.ok) {
