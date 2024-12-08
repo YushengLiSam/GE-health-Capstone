@@ -209,14 +209,6 @@ def add_categories():
 # -------------------------
 # GET /categories
 # -------------------------
-# Fetch all category names and ids
-
-
-
-
-# -------------------------
-# GET /categories
-# -------------------------
 # Fetch all category names and ids associated with the given user
 
 @api_routes.route('/categories', methods=['GET'])
