@@ -12,7 +12,7 @@ function AnnotationList() {
       try {
         const userID = sessionStorage.getItem("userID");
         const response = await fetch(`http://127.0.0.1:5002/api/categories?user_id=${userID}`, {
-          method: 'GET',
+          method: 'GET', 
         });
 
         if (!response.ok) {
