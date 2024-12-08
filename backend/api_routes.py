@@ -254,8 +254,8 @@ def get_categories():
 @api_routes.route('/categories', methods=['DELETE'])
 def delete_category():
     data = request.json
-    category_id = data.get('id')
-    user_id = data.get('user_id')
+    category_id = data['id']
+    user_id = data['user_id']
 
     if not category_id or not user_id:
         return jsonify({"error": "Category ID and User ID are required"}), 400
@@ -289,7 +289,8 @@ def delete_category():
         db1.commit()
 
         # Return the remaining categories by calling the existing get_categories method
-        return get_categories()
+        return jsonify({"success": True}), 204
+
 
     except Exception as e:
         db1.rollback()  # Rollback in case of error
@@ -467,10 +468,10 @@ def add_subcategories():
 def get_subcategories():
     category_id = request.args.get('category_id')
     category_name = request.args.get('category_name')
-    user_id = request.args.get('user_id')
+    # user_id = request.args.get('user_id')
 
-    if not user_id:
-        return jsonify({"error": "User ID is required"}), 400
+    # if not user_id:
+    #     return jsonify({"error": "User ID is required"}), 400
 
     try:
         cursor = db1.cursor(dictionary=True)
@@ -493,14 +494,14 @@ def get_subcategories():
         category_id = category['id']
 
         # Verify if the user is associated with the category
-        cursor.execute(
-            "SELECT * FROM UserAnnotations WHERE category_id = %s AND user_id = %s",
-            (category_id, user_id)
-        )
-        user_category = cursor.fetchone()
+        # cursor.execute(
+        #     "SELECT * FROM UserAnnotations WHERE category_id = %s AND user_id = %s",
+        #     (category_id, user_id)
+        # )
+        # user_category = cursor.fetchone()
 
-        if not user_category:
-            return jsonify({"error": "User not authorized to access this category"}), 403
+        # if not user_category:
+        #     return jsonify({"error": "User not authorized to access this category"}), 403
 
         # Find subcategories for the given category
         cursor.execute("SELECT id, name FROM Subcategories WHERE category_id = %s", (category_id,))

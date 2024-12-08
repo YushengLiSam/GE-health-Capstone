@@ -21,7 +21,7 @@ function AnnotationList() {
 
         const data = await response.json();
         console.log("Annotations are: ", data);
-        setAnnotations(data);
+        setAnnotations(data.categories);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -33,13 +33,15 @@ function AnnotationList() {
   }, []);
 
   // Handle delete for category
-  const handleDeleteCategory = async (categoryName) => {
+  const handleDeleteCategory = async (category_id) => {
     try {
+      
       const userID = sessionStorage.getItem("userID");
+      console.log(JSON.stringify({ id:category_id, user_id: userID }))
       const response = await fetch(`http://127.0.0.1:5002/api/categories`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: categoryName, user_id: userID }),
+        body: JSON.stringify({ id:category_id, user_id: userID }),
       });
 
       if (!response.ok) {
@@ -47,7 +49,7 @@ function AnnotationList() {
       }
 
       setAnnotations((prevAnnotations) =>
-        prevAnnotations.filter((annotation) => annotation.category !== categoryName)
+        prevAnnotations.filter((annotation) => annotation.id !== category_id)
       );
     } catch (err) {
       console.error("Error deleting category:", err);
@@ -132,24 +134,24 @@ function AnnotationList() {
           <thead>
             <tr>
               <th>Category</th>
-              <th>Subcategory</th>
+              {/* <th>Subcategory</th>
               <th>Datapoint</th>
-              <th>Actions</th>
+              <th>Actions</th> */}
             </tr>
           </thead>
           <tbody>
             {annotations.map((annotation, index) => (
               <tr key={index}>
                 <td>
-                  {annotation.category}
+                  {annotation.name}
                   <button
                     className="remove-button"
-                    onClick={() => handleDeleteCategory(annotation.category)}
+                    onClick={() => handleDeleteCategory(annotation.id)}
                   >
                     Remove
                   </button>
                 </td>
-                <td>
+                {/* <td>
                   {annotation.subcategory}
                   <button
                     className="remove-button"
@@ -174,7 +176,7 @@ function AnnotationList() {
                   >
                     Remove
                   </button>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
