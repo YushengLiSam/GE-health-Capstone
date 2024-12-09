@@ -68,9 +68,9 @@ function AnnotationList() {
       ...prev,
       [categoryId]: !prev[categoryId],
     }));
-    // if (!expandedCategories[categoryId]) {
-    //   fetchSubcategories(categoryId);
-    // }
+    if (!expandedCategories[categoryId]) {
+      fetchSubcategories(categoryId);
+    }
   };
 
   // Toggle subcategory expansion
@@ -198,6 +198,12 @@ function AnnotationList() {
                 {expandedCategories[category.id] ? '▼' : '▲'}
               </button>
               <span>{category.name}</span>
+              <button
+                className="removeButton"
+                onClick={() => handleDeleteCategory(category.id)}
+              >
+                Remove
+              </button>
             </div>
             {expandedCategories[category.id] &&
               subcategoriesData[category.id]?.map((subcategory) => (
