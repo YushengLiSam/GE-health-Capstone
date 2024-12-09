@@ -1,27 +1,35 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import styles from './AnnotationBuilder.module.css';
 import './AnnotationList.css';
 
 function AnnotationList() {
-  const [annotations, setAnnotations] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subcategoriesData, setSubcategoriesData] = useState({});
+  const [expandedCategories, setExpandedCategories] = useState({});
+  const [expandedSubcategories, setExpandedSubcategories] = useState({});
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch annotations from the API
-    const fetchAnnotations = async () => {
+    // Fetch categories from the API
+    const fetchCategories = async () => {
       try {
         const userID = sessionStorage.getItem("userID");
         const response = await fetch(`http://127.0.0.1:5002/api/categories?user_id=${userID}`, {
-          method: 'GET', 
+          method: 'GET',
         });
 
         if (!response.ok) {
-          throw new Error(`Error fetching annotations: ${response.statusText}`);
+          throw new Error(`Error fetching categories: ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log("Annotations are: ", data);
-        setAnnotations(data.categories);
+        setCategories(data.categories || []);
+        if (data.categories.length > 0) {
+          // Fetch subcategories for the first category by default
+          fetchSubcategories(data.categories[0].id);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -29,8 +37,49 @@ function AnnotationList() {
       }
     };
 
-    fetchAnnotations();
+    fetchCategories();
   }, []);
+
+  // Fetch subcategories for a specific category
+  const fetchSubcategories = async (categoryId) => {
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:5002/api/subcategories?category_id=${categoryId}`,
+        { method: 'GET' }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Error fetching subcategories for category ${categoryId}`);
+      }
+
+      const data = await response.json();
+      setSubcategoriesData((prev) => ({
+        ...prev,
+        [categoryId]: data.subcategories || [],
+      }));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Toggle category expansion
+  const toggleCategory = (categoryId) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
+    // if (!expandedCategories[categoryId]) {
+    //   fetchSubcategories(categoryId);
+    // }
+  };
+
+  // Toggle subcategory expansion
+  const toggleSubcategory = (categoryId, subcategoryId) => {
+    setExpandedSubcategories((prev) => ({
+      ...prev,
+      [`${categoryId}-${subcategoryId}`]: !prev[`${categoryId}-${subcategoryId}`],
+    }));
+  };
 
   // Handle delete for category
   const handleDeleteCategory = async (category_id) => {
@@ -48,8 +97,8 @@ function AnnotationList() {
         throw new Error(`Failed to delete category. Status: ${response.status}`);
       }
 
-      setAnnotations((prevAnnotations) =>
-        prevAnnotations.filter((annotation) => annotation.id !== category_id)
+      setCategories((prevcategories) =>
+        prevcategories.filter((annotation) => annotation.id !== category_id)
       );
     } catch (err) {
       console.error("Error deleting category:", err);
@@ -70,8 +119,8 @@ function AnnotationList() {
         throw new Error(`Failed to delete subcategory. Status: ${response.status}`);
       }
 
-      setAnnotations((prevAnnotations) =>
-        prevAnnotations.map((annotation) => {
+      setCategories((prevcategories) =>
+        prevcategories.map((annotation) => {
           if (annotation.category === categoryName) {
             annotation.subcategory = annotation.subcategory.filter(
               (sub) => sub !== subcategoryName
@@ -103,8 +152,8 @@ function AnnotationList() {
         throw new Error(`Failed to delete datapoint. Status: ${response.status}`);
       }
 
-      setAnnotations((prevAnnotations) =>
-        prevAnnotations.map((annotation) => {
+      setCategories((prevcategories) =>
+        prevcategories.map((annotation) => {
           if (annotation.category === categoryName) {
             annotation.subcategory = annotation.subcategory.map((sub) => {
               if (sub.name === subcategoryName) {
@@ -124,67 +173,57 @@ function AnnotationList() {
 
   return (
     <div className="annotation-list">
-      <h2>Annotation List</h2>
+      <h1>Annotation List</h1>
       {loading ? (
-        <div className="loading">Loading annotations...</div>
+        <div className="loading">Loading categories...</div>
       ) : error ? (
         <div className="error">{error}</div>
-      ) : annotations.length > 0 ? (
-        <table>
-          <thead>
-            <tr>
-              <th>Category</th>
-              {/* <th>Subcategory</th>
-              <th>Datapoint</th>
-              <th>Actions</th> */}
-            </tr>
-          </thead>
-          <tbody>
-            {annotations.map((annotation, index) => (
-              <tr key={index}>
-                <td>
-                  {annotation.name}
-                  <button
-                    className="remove-button"
-                    onClick={() => handleDeleteCategory(annotation.id)}
-                  >
-                    Remove
-                  </button>
-                </td>
-                {/* <td>
-                  {annotation.subcategory}
-                  <button
-                    className="remove-button"
-                    onClick={() =>
-                      handleDeleteSubcategory(annotation.category, annotation.subcategory)
-                    }
-                  >
-                    Remove
-                  </button>
-                </td>
-                <td>
-                  {annotation.datapoint}
-                  <button
-                    className="remove-button"
-                    onClick={() =>
-                      handleDeleteDatapoint(
-                        annotation.category,
-                        annotation.subcategory,
-                        annotation.datapoint
-                      )
-                    }
-                  >
-                    Remove
-                  </button>
-                </td> */}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
+      ) : categories.length === 0 ? (
         <div className="no-annotations">
-          No annotations have been set. Please go to the Annotation Builder to set up annotations.
+          No annotations available. Try using the{' '}
+          <Link to="/admin/annotation-builder" className="annotation-link">
+            Annotation Builder
+          </Link>{' '}
+          to customize your own annotations.
         </div>
+      ) : (
+        categories.map((category) => (
+          <div key={category.id} className="category">
+            <div className="categoryRow">
+              {/* Collapse/Expand button for category */}
+              <button
+                className={`caretButton ${expandedCategories[category.id] ? 'expanded' : ''}`}
+                onClick={() => toggleCategory(category.id)}
+              >
+                {expandedCategories[category.id] ? '▼' : '▲'}
+              </button>
+              <span>{category.name}</span>
+            </div>
+            {expandedCategories[category.id] &&
+              subcategoriesData[category.id]?.map((subcategory) => (
+                <div key={subcategory.id} className="subcategory">
+                  <div className="subcategoryRow">
+                    {/* Collapse/Expand button for subcategory */}
+                    <button
+                      className={`caretButton ${
+                        expandedSubcategories[`${category.id}-${subcategory.id}`] ? 'expanded' : ''
+                      }`}
+                      onClick={() => toggleSubcategory(category.id, subcategory.id)}
+                    >
+                      {expandedSubcategories[`${category.id}-${subcategory.id}`] ? '▼' : '▲'}
+                    </button>
+                    <span>{subcategory.name}</span>
+                  </div>
+                  {expandedSubcategories[`${category.id}-${subcategory.id}`] &&
+                    subcategory.datapoints?.map((datapoint) => (
+                      <div key={datapoint.id} className="datapoint">
+                        <span>{datapoint.name}</span>
+                      </div>
+                    ))}
+                </div>
+              ))}
+          </div>
+        ))
       )}
     </div>
   );

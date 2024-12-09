@@ -50,3 +50,86 @@
   .remove-button:hover {
     background-color: #c0392b;
   }
+
+  .annotation-link {
+    color: #007bff; /* Bootstrap primary color */
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  
+  .annotation-link:hover {
+    text-decoration: none;
+    color: #0056b3;
+  }
+
+  .annotation-builder {
+    padding: 20px;
+  }
+
+  .categoryRow,
+.subcategoryRow {
+  display: flex;
+  align-items: center; /* Align items in the same row */
+  gap: 10px; /* Space between elements */
+  margin-bottom: 10px;
+}
+
+  
+  .category,
+  .subcategory,
+  .datapoint {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .category {
+    background-color: #E7E5F0;
+  }
+  
+  .subcategory {
+    margin-left: 30px; /* Indent for subcategories */
+    padding: 10px;
+    background-color: #D6D2E4; /* Slightly different background for subcategories */
+    border-radius: 8px;
+  }
+  
+  .datapoint {
+    margin-left: 60px; /* Further indent for datapoints */
+    padding: 10px;
+    background-color: #C5BFD9; /* Background for datapoints */
+    border-radius: 8px;
+  }
+  
+  .caretButton {
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    width: 24px; /* Square dimensions */
+    height: 24px;
+    border: 1px solid #ccc; /* Border around the square */
+    border-radius: 4px; /* Optional for rounded corners */
+    background-color: #f9f9f9; /* Light background */
+    cursor: pointer;
+    margin-right: 10px; /* Spacing between the caret and text */
+    font-size: 14px; /* Icon size */
+    font-weight: bold;
+    color: black; /* Black color for visibility */
+  }
+  
+  .caretButton:hover {
+    background-color: #e0e0e0; /* Darker background on hover */
+  }
+  
+  .caretButton.folded {
+    background-color: #fff; /* Optional for folded state */
+  }
+
+.removeButton {
+  background-color: #d9534f;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
